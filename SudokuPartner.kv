@@ -9,7 +9,7 @@ SudokuButtons:
         pos_hint: {"center_x": .5}
     Label:
         size_hint: (1, .05)
-    NumberEntry:
+    EntryLayout:
     Label:
         size_hint: (1, .05)
 
@@ -28,3 +28,9 @@ SudokuButtons:
 
 <ToggleButton>:
     on_press: app.root.switch_active(self)
+
+<EntryLayout>:
+    NumberEntry:
+    Button:
+        text: "Solve me"
+        on_press: root.run_solver(self)
