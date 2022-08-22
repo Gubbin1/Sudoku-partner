@@ -3,8 +3,8 @@ SudokuButtons:
 <MainScreen>:
     orientation: "vertical"
     Label:
-        text: "top"
-        size_hint: (1, .1)
+        text: "top margin"
+        size_hint: (1, .2)
     SudokuButtons:
         pos_hint: {"center_x": .5}
     Label:
@@ -20,7 +20,7 @@ SudokuButtons:
     size: self.minimum_size
     top: self.height
 
-<NumberEntry>:
+<OptionGrid>:
     cols: 5
     pos_hint: {'center_x': .5}
     size_hint: (None, None)
@@ -30,7 +30,16 @@ SudokuButtons:
     on_press: app.root.switch_active(self)
 
 <EntryLayout>:
-    NumberEntry:
+    Label:
+        id: "possDisplay"
+        text: "Select a cell."
+        pos_hint: {'x': .05, 'y':.05}
+        size_hint: (None, None)
+        size: (dp(80), dp(40))
+    OptionGrid:
     Button:
         text: "Solve me"
+        size_hint: (None, None)
+        size: (dp(80), dp(40))
+        pos_hint: {'right':.95, 'y':.05}
         on_press: root.run_solver(self)
