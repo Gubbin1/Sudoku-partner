@@ -1,0 +1,30 @@
+SudokuButtons:
+
+<MainScreen>:
+    orientation: "vertical"
+    Label:
+        text: "top"
+        size_hint: (1, .1)
+    SudokuButtons:
+        pos_hint: {"center_x": .5}
+    Label:
+        size_hint: (1, .05)
+    NumberEntry:
+    Label:
+        size_hint: (1, .05)
+
+<SudokuButtons>:
+    cols: 9
+    pos_hint: {'center_x': .5}
+    size_hint: (None, None)
+    size: self.minimum_size
+    top: self.height
+
+<NumberEntry>:
+    cols: 5
+    pos_hint: {'center_x': .5}
+    size_hint: (None, None)
+    size: self.minimum_size
+
+<ToggleButton>:
+    on_state: app.root.switch_active(self)
