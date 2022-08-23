@@ -66,7 +66,6 @@ def fillGreen(cells, blocks):
         for j in range(9):
             if cells[i][j].entryButton.background_color == [0, 1, 0, 1]:
                 cells[i][j].fill()
-                print(f"trying to fill {i} {j}")
                 cells[i][j].updateRelated(cells, blocks)
                 return True
     return False

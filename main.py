@@ -7,6 +7,7 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.metrics import dp
 from kivy.uix.widget import Widget
 from kivy.lang import Builder
+from kivy.properties import StringProperty
 from methods import findNextMove, checkForFillableCells, fillGreen, cell
 
 sudoku_toggles = []
@@ -84,6 +85,41 @@ class MainScreen(BoxLayout):
         else:
             for number in selection_buttons:
                 number.disabled = True
+
+    def fill_example(self, button):
+        position = 0
+        if button.text == "Easy example":
+            for i in range(9):
+                for j in range(9):
+                    if easyExample[position] > 0:
+                        cells[i][j].entryButton.text = str(easyExample[position])
+                    else:
+                        cells[i][j].entryButton.text = ""
+                    position += 1
+        elif button.text == "Medium example":
+            for i in range(9):
+                for j in range(9):
+                    if mediumExample[position] > 0:
+                        cells[i][j].entryButton.text = str(mediumExample[position])
+                    else:
+                        cells[i][j].entryButton.text = ""
+                    position += 1
+        elif button.text == "Hard example":
+            for i in range(9):
+                for j in range(9):
+                    if hardExample[position] > 0:
+                        cells[i][j].entryButton.text = str(hardExample[position])
+                    else:
+                        cells[i][j].entryButton.text = ""
+                    position += 1
+        elif button.text == "Evil example":
+            for i in range(9):
+                for j in range(9):
+                    if evilExample[position] > 0:
+                        cells[i][j].entryButton.text = str(evilExample[position])
+                    else:
+                        cells[i][j].entryButton.text = ""
+                    position += 1
     
 
 class SudokuButtons(GridLayout):
@@ -93,7 +129,7 @@ class SudokuButtons(GridLayout):
         for i in range(9):
             for j in range(9):
                 size = dp(35)
-                b = ToggleButton(size_hint=(None, None), size=(size, size))
+                b = ToggleButton(size_hint = (None, None), size = (size, size))
                 sudoku_toggles.append(b)
                 self.add_widget(b)
                 newCell = cell(i, j, b)
@@ -116,7 +152,7 @@ class EntryLayout(RelativeLayout):
                 solveHistory.append(history(step, "Elimination", (i, j)))
             button.text = "Next Hint"
         else:
-            solveHistory.append(step, findNextMove(cells, blocks), (i, j))
+            findNextMove(cells, blocks)
 
 
 class OptionGrid(GridLayout):

@@ -5,20 +5,38 @@ SudokuButtons:
     Label:
         text: "top margin"
         size_hint: (1, .2)
-    SudokuButtons:
-        pos_hint: {"center_x": .5}
+    MiddleGrid:
     Label:
         size_hint: (1, .05)
     EntryLayout:
+        size_hint: (1, .2)
     Label:
         size_hint: (1, .05)
 
+<MiddleGrid@BoxLayout>:
+    ExampleDokus:
+        size_hint: (.2, 1)
+    SudokuButtons:
+    Label:
+        size_hint: (.2, 1)
+
+<ExampleDokus@BoxLayout>
+    orientation: "vertical"
+    Button:
+        text: "Easy example"
+        on_press: app.root.fill_example(self)
+    Button:
+        text: "Medium example"
+        on_press: app.root.fill_example(self)
+    Button:
+        text: "Hard example"
+        on_press: app.root.fill_example(self)
+    Button:
+        text: "Evil example"
+        on_press: app.root.fill_example(self)
+
 <SudokuButtons>:
     cols: 9
-    pos_hint: {'center_x': .5}
-    size_hint: (None, None)
-    size: self.minimum_size
-    top: self.height
 
 <OptionGrid>:
     cols: 5
