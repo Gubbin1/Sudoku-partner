@@ -7,12 +7,67 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.metrics import dp
 from kivy.uix.widget import Widget
 from kivy.lang import Builder
+from methods import findNextMove, checkForFillableCells, fillGreen, cell
 
 sudoku_toggles = []
 selection_buttons = []
-cell_data = [[None for i in range(9)] for j in range(9)]
+cells = [[None for i in range(9)] for j in range(9)]
+blocks = {"tl": [], "tm": [], "tr": [],
+            "ml": [], "mm": [], "mr": [],
+            "bl": [], "bm": [], "br": []}
 step = 0
 pressedButton = ToggleButton
+solveHistory = []
+easyExample = (0, 0, 0, 0, 4, 8, 0, 9, 7,
+                7, 0, 0, 5, 0, 1, 0, 0, 3,
+                0, 6, 0, 0, 0, 0, 0, 4, 0,
+                0, 9, 0, 0, 0, 0, 8, 1, 0,
+                8, 0, 4, 1, 9, 2, 3, 7, 0,
+                6, 1, 7, 0, 3, 4, 5, 2, 0,
+                0, 0, 0, 0, 5, 0, 0, 0, 1,
+                0, 3, 6, 4, 0, 9, 0, 0, 0,
+                4, 0, 5, 0, 0, 0, 0, 3, 0)
+
+mediumExample = (4, 8, 0, 0, 0, 0, 5, 0, 0,
+                0, 0, 0, 5, 4, 8, 3, 9, 7,
+                0, 0, 0, 0, 0, 0, 8, 0, 0,
+                0, 0, 4, 1, 8, 0, 2, 3, 0,
+                0, 0, 8, 0, 0, 6, 0, 0, 0,
+                0, 5, 0, 0, 7, 3, 0, 0, 8,
+                0, 7, 2, 3, 0, 9, 0, 0, 0,
+                0, 0, 3, 0, 0, 0, 0, 2, 5,
+                0, 0, 0, 0, 6, 2, 9, 0, 3)
+
+hardExample = (0, 0, 0, 0, 0, 0, 6, 0, 0, 
+                0, 0, 0, 7, 0, 0, 8, 0, 5,
+                0, 0, 1, 0, 2, 8, 0, 3, 0, 
+                0, 0, 0, 0, 0, 6, 0, 2, 8,
+                0, 0, 2, 1, 5, 0, 9, 0, 0,
+                0, 0, 0, 0, 0, 4, 0, 7, 0,
+                0, 8, 4, 0, 0, 0, 0, 5, 0, 
+                0, 0, 3, 5, 4, 0, 0, 0, 7,
+                2, 0, 7, 0, 0, 0, 4, 0, 9)
+
+expertExample = (0, 9, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 1, 9, 0, 3, 0, 7,
+                0, 0, 0, 8, 0, 0, 0, 0, 0,
+                0, 0, 5, 0, 7, 0, 0, 0, 9,
+                0, 0, 0, 4, 0, 0, 0, 8, 1,
+                0, 2, 0, 0, 0, 0, 0, 7, 0,
+                0, 7, 0, 0, 0, 4, 0, 0, 0,
+                0, 0, 0, 2, 5, 0, 0, 4, 0,
+                5, 0, 9, 0, 0, 3, 0, 2, 0)
+
+evilExample = (0, 0, 0, 6, 0, 0, 0, 8, 0,
+                0, 4, 0, 0, 0, 0, 0, 2, 0,
+                5, 0, 0, 0, 9, 0, 4, 0, 6,
+                0, 5, 0, 2, 0, 0, 7, 0, 1,
+                9, 0, 0, 0, 0, 3, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 4, 0,
+                0, 0, 1, 0, 2, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 8,
+                0, 7, 0, 1, 0, 0, 6, 0, 5)
+
 
 class MainScreen(BoxLayout):
     def switch_active(self, togglebutton):
@@ -42,28 +97,26 @@ class SudokuButtons(GridLayout):
                 sudoku_toggles.append(b)
                 self.add_widget(b)
                 newCell = cell(i, j, b)
-                cell_data[i][j] = newCell
+                cells[i][j] = newCell
+                blocks[newCell.block].append(newCell)
 
 
 class EntryLayout(RelativeLayout):
     def run_solver(self, button):
         global step
-        for i in range(9):
-            for j in range(9):
-                if cell_data[i][j].entryButton.text != "":
-                    cell_data[i][j].value = cell_data[i][j].entryButton.text
-                    cell_data[i][j].poss.clear()
-                    cell_data[i][j].updateRelated()
-        self.checkForFillableCells()
-        step += 1
-        button.text = "Next Hint"
-    
-    def checkForFillableCells(self):
-        for i in range(9):
-            for j in range(9):
-                if len(cell_data[i][j].poss) == 1:
-                    cell_data[i][j].entryButton.background_color = "green"
-
+        if button.text == "Get hint":
+            for i in range(9):
+                for j in range(9):
+                    if cells[i][j].entryButton.text != "":
+                        cells[i][j].value = cells[i][j].entryButton.text
+                        cells[i][j].poss.clear()
+                        cells[i][j].updateRelated(cells, blocks)
+            if checkForFillableCells(cells):
+                step += 1
+                solveHistory.append(history(step, "Elimination", (i, j)))
+            button.text = "Next Hint"
+        else:
+            solveHistory.append(step, findNextMove(cells, blocks), (i, j))
 
 
 class OptionGrid(GridLayout):
@@ -90,44 +143,9 @@ class OptionGrid(GridLayout):
         for butt in selection_buttons:
             butt.disabled = True
 
-
-class cell():
-    def __init__(self, myRow, myColumn, myButton):
-        self.row = myRow
-        self.column = myColumn
-        self.block = None
-        self.poss = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
-        self.value = None
-        self.entryButton = myButton
-        if 0 <= self.row < 3 and 0 <= self.column < 3:
-            self.block = "tl"
-        elif 0 <= self.row < 3 and 2 < self.column < 6:
-            self.block = "tm"
-        elif 0 <= self.row < 3 and 5 < self.column < 9:
-            self.block = "tr"
-        elif 2 < self.row < 6 and 0 <= self.column < 3:
-            self.block = "ml"
-        elif 2 < self.row < 6 and 2 < self.column < 6:
-            self.block = "mm"
-        elif 2 < self.row < 6 and 5 < self.column < 9:
-            self.block = "mr"
-        elif 5 < self.row < 9 and 0 <= self.column < 3:
-            self.block = "bl"
-        elif 5 < self.row < 9 and 2 < self.column < 6:
-            self.block = "bm"
-        elif 5 < self.row < 9 and 5 < self.column < 9:
-            self.block = "br"
-
-    def updateRelated(self):
-        bugtest = 0
-        for i in range(9):
-            for j in range(9):
-                if cell_data[i][j].row == self.row and cell_data[i][j].column == self.column:
-                    pass
-                elif cell_data[i][j].row == self.row or cell_data[i][j].column == self.column or cell_data[i][j].block == self.block:
-                    if len(cell_data[i][j].poss) > 1 and self.value in cell_data[i][j].poss:
-                        cell_data[i][j].poss.remove(self.value)
-                        bugtest = 1
+class history():
+    def __init__(self, step, method, index):
+        record = {"step": step, "method": method, "index": index}
 
     
 class SudokuPartnerApp(App):
