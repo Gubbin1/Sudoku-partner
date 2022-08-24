@@ -40,7 +40,6 @@ class cell():
             self.block = "br"
 
     def updateRelated(self, cells, blocks):
-        bugtest = 0
         thisRow = self.row
         thisCol = self.column
         for i in range(9):
@@ -54,10 +53,10 @@ class cell():
             elif self.value in cells[self.row][i].poss:
                 cells[self.row][i].poss.remove(self.value)
 
-            if blocks[self.block][i].row == thisRow and blocks[self.block][i].column == thisCol:
+            if thisRow == blocks[self.block][i][0] and blocks[self.block][i][1] == thisCol:
                 pass
-            elif self.value in blocks[self.block][i].poss:
-                blocks[self.block][i].poss.remove(self.value)
+            elif self.value in cells[blocks[self.block][i][0]][blocks[self.block][i][1]].poss:
+                cells[blocks[self.block][i][0]][blocks[self.block][i][1]].poss.remove(self.value)
 
     def fill(self):
         if self.value == None:
@@ -95,7 +94,7 @@ def hiddenSingle(cells, blocks):
         for n in nums:
             count = 0
             for i in range(9):
-                if n == group[i].value:
+                if n == group[i].value or count > 1:
                     break
                 if n in group[i].poss:
                     count += 1
@@ -109,14 +108,14 @@ def hiddenSingle(cells, blocks):
         for n in nums:
             count = 0
             for i in range(9):
-                if n in blocks[block][i].poss:
+                if n == cells[blocks[block][i][0]][blocks[block][i][1]].value or count > 1:
+                    break
+                if n in cells[blocks[block][i][0]][blocks[block][i][1]].poss:
                     count += 1
-                    cellRow = blocks[block][i].row
-                    cellCol = blocks[block][i].column
+                    cellRow = blocks[block][i][0]
+                    cellCol = blocks[block][i][1]
             if count == 1:
                 cells[cellRow][cellCol].entryButton.background_color = (0, 1, 0, 1)
+                print(f"{cellRow}, {cellCol}, {n}")
                 cells[cellRow][cellCol].value = n
                 return True
-
-
-            
