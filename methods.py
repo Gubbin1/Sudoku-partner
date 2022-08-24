@@ -7,6 +7,10 @@ def findNextMove(cells, blocks):
         pass
     else:
         return "Elimination"
+    if not hiddenSingle(cells, blocks):
+        pass
+    else:
+        return "Hidden single"
 
 class cell():
     def __init__(self, myRow, myColumn, myButton):
@@ -56,7 +60,8 @@ class cell():
                 blocks[self.block][i].poss.remove(self.value)
 
     def fill(self):
-        self.value = self.poss[0]
+        if self.value == None:
+            self.value = self.poss[0]
         self.poss.clear()
         self.entryButton.text = self.value
         self.entryButton.background_color = "white"
@@ -77,3 +82,41 @@ def checkForFillableCells(cells):
                 cells[i][j].entryButton.background_color = (0, 1, 0, 1)
                 return True
     return False
+
+def hiddenSingle(cells, blocks):
+    nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    keys = ["tl", "tm", "tr",
+            "ml", "mm", "mr",
+            "bl", "bm", "br"]
+
+    cellRow = None
+    cellCol = None
+    for group in cells:
+        for n in nums:
+            count = 0
+            for i in range(9):
+                if n == group[i].value:
+                    break
+                if n in group[i].poss:
+                    count += 1
+                    cellRow = group[i].row
+                    cellCol = i
+            if count == 1:
+                cells[cellRow][cellCol].entryButton.background_color = (0, 1, 0, 1)
+                cells[cellRow][cellCol].value = n
+                return True
+    for block in keys:
+        for n in nums:
+            count = 0
+            for i in range(9):
+                if n in blocks[block][i].poss:
+                    count += 1
+                    cellRow = blocks[block][i].row
+                    cellCol = blocks[block][i].column
+            if count == 1:
+                cells[cellRow][cellCol].entryButton.background_color = (0, 1, 0, 1)
+                cells[cellRow][cellCol].value = n
+                return True
+
+
+            
