@@ -16,6 +16,14 @@ def findNextMove(cells, blocks):
         pass
     else:
         return "Naked Pair"
+    if not lockedCandidate(cells, blocks):
+        pass
+    else:
+        return "Locked Candidate"
+    if not pointingTuple(cells, blocks):
+        pass
+    else:
+        return "Pointing Tuple"
     if not hiddenPairs(cells, blocks):
         pass
     else:
@@ -158,6 +166,63 @@ def hiddenSingle(cells, blocks):
                 print(f"{cellRow}, {cellCol}, {n}")
                 cells[cellRow][cellCol].value = n
                 return True
+
+
+def lockedCandidate(cells, blocks):
+    keys = ["tl", "tm", "tr",
+            "ml", "mm", "mr",
+            "bl", "bm", "br"]
+    nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    return False
+
+
+def pointingTuple(cells, blocks):
+    keys = ["tl", "tm", "tr",
+            "ml", "mm", "mr",
+            "bl", "bm", "br"]
+    nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    for key in keys:
+        for n in nums:
+            rowCheck = []
+            colCheck = []
+            for index in blocks[key]:
+                # Stops looking for possible candidates if the answer is already in the block
+                if cells[index[0]][index[1]].value == n:
+                    break
+                if n in cells[index[0]][index[1]].poss:
+                    rowCheck.append(index[0])
+                    colCheck.append(index[1])
+            # If all of the instances of a number in a block occur in the same row, clear out the number from the rest of the row
+            if 1 < len(rowCheck) < 4:
+                unique = []
+                done = False
+                for i in rowCheck:
+                    if i not in unique:
+                        unique.append(i)
+                if len(unique) == 1:
+                    for j in range(9):
+                        if n in cells[unique[0]][j].poss and cells[unique[0]][j].block != key:
+                            cells[unique[0]][j].poss.remove(n)
+                            cells[unique[0]][j].entryButton.background_color = (0, 0, 1, 1)
+                            done = True
+                    if done:
+                        return True
+            # If all of the instances of a number in a block occur in the same column, clear out the number from the rest of the column
+            if 1 < len(colCheck) < 4:
+                unique = []
+                for i in colCheck:
+                    if i not in unique:
+                        unique.append(i)
+                if len(unique) == 1:
+                    for j in range(9):
+                        if n in cells[j][unique[0]].poss and cells[j][unique[0]].block != key:
+                            cells[j][unique[0]].poss.remove(n)
+                            cells[unique[0]][j].entryButton.background_color = (0, 0, 1, 1)
+                            done = True
+                    if done:
+                        return True
+    return False
+
 
 # Checks rows, columns, and blocks for pairs of cells that share the same ONLY TWO possibilities, removes those possibilities from other related cells
 def nakedPairs(cells, blocks):
