@@ -16,6 +16,10 @@ def findNextMove(cells, blocks):
         pass
     else:
         return "Naked Pair"
+    if not hiddenPairs(cells, blocks):
+        pass
+    else:
+        return "Hidden Pair"
 
 # Cells have their position in the cell array, their corresponding button, their possible values, and when answered their actual value.
 class cell(): 
@@ -71,7 +75,14 @@ class cell():
         self.poss.clear()
         self.entryButton.text = self.value
         self.entryButton.background_color = "white"
-    
+    # Clears out all but the values in a given list from possible
+    def updateHidden(self, found):
+        for n in self.poss:
+            if n in found:
+                pass
+            else:
+                self.poss.remove(n)
+
 # Check the grid for the green cell and fills it. Cells are made green when they are next to be answered.
 def fillGreen(cells, blocks):
     for i in range(9):
@@ -223,3 +234,124 @@ def updateNakedPair(pair, cells, blocks):
                 if cells[index[0]][index[1]] not in pair and pair[0].poss[j] in cells[index[0]][index[1]].poss:
                     cells[index[0]][index[1]].poss.remove(pair[0].poss[j])
 
+# Check rows, columns, and blocks for instances where two numbers are only available in two cells.
+def hiddenPairs(cells, blocks):
+    keys = ["tl", "tm", "tr",
+            "ml", "mm", "mr",
+            "bl", "bm", "br"]
+    nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    numCount = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+    maybes = []
+    pairs = []
+    found = None
+    
+    # Checks rows for hidden pairs
+    for row in cells:
+        # Count up how many times each number is possible
+        for n in nums:
+            for i in range(9):
+                if n in row[i].poss:
+                    numCount[n] += 1
+        # Save the numbers with only two possible locations
+        for n in nums:
+            if numCount[n] == 2:
+                maybes.append(n)
+        # Put indexes of paired cells in an array, with number value
+        if len(maybes) > 1:
+            pairs = []
+            for n in maybes:
+                pair = []
+                for i in range(9):
+                    if n in row[i].poss:
+                        pair.append(row[i].index)
+                pair.append(n)
+                pairs.append(pair)
+        # Check if any of the pairs match
+        if len(pairs) > 1:
+            for i in range(len(pairs) - 1):
+                for j in range(i + 1, len(pairs)):
+                    if pairs[i][0] == pairs[j][0] and pairs[i][1] == pairs[j][1]:
+                        found = (pairs[i][2], pairs[j][2])
+                        cells[pairs[i][0][0]][pairs[i][0][1]].updateHidden(found)
+                        cells[pairs[i][1][0]][pairs[i][1][1]].updateHidden(found)
+                        cells[pairs[i][0][0]][pairs[i][0][1]].entryButton.background_color = (0, 0, 1, 1)
+                        cells[pairs[i][1][0]][pairs[i][1][1]].entryButton.background_color = (0, 0, 1, 1)
+                        return True
+        # Re-initialize starting values
+        maybes.clear()
+        pairs.clear()
+        for key in nums:
+            numCount[key] = 0
+    # Checks columns for hidden pairs
+    for col in range(9):
+        # Count up how many times each number is possible
+        for n in nums:
+            for i in range(9):
+                if n in cells[i][col].poss:
+                    numCount[n] += 1
+        # Save the numbers with only two possible locations
+        for n in nums:
+            if numCount[n] == 2:
+                maybes.append(n)
+        # Put indexes of paired cells in an array, with number value
+        if len(maybes) > 1:
+            pairs = []
+            for n in maybes:
+                pair = []
+                for i in range(9):
+                    if n in cells[i][col].poss:
+                        pair.append(cells[i][col].index)
+                pair.append(n)
+                pairs.append(pair)
+        # Check if any of the pairs match
+        for i in range(len(pairs) - 1):
+            for j in range(i + 1, len(pairs)):
+                if pairs[i][0] == pairs[j][0] and pairs[i][1] == pairs[j][1]:
+                    found = (pairs[i][2], pairs[j][2])
+                    cells[pairs[i][0][0]][pairs[i][0][1]].updateHidden(found)
+                    cells[pairs[i][1][0]][pairs[i][1][1]].updateHidden(found)
+                    cells[pairs[i][0][0]][pairs[i][0][1]].entryButton.background_color = (0, 0, 1, 1)
+                    cells[pairs[i][1][0]][pairs[i][1][1]].entryButton.background_color = (0, 0, 1, 1)
+                    return True
+        # Re-initialize starting values
+        maybes.clear()
+        pairs.clear()
+        for key in nums:
+            numCount[key] = 0
+    # Checks blocks for hidden pairs
+    for block in keys:
+        # Count up how many times each number is possible
+        for n in nums:
+            for i in range(9):
+                if n in cells[blocks[block][i][0]][blocks[block][i][1]].poss:
+                    numCount[n] += 1
+        # Save the numbers with only two possible locations
+        for n in nums:
+            if numCount[n] == 2:
+                maybes.append(n)
+        # Put indexes of paired cells in an array, with number value
+        if len(maybes) > 1:
+            pairs = []
+            for n in maybes:
+                pair = []
+                for i in range(9):
+                    if n in cells[blocks[block][i][0]][blocks[block][i][1]].poss:
+                        pair.append(blocks[block][i])
+                pair.append(n)
+                pairs.append(pair)
+        # Check if any of the pairs match
+        for i in range(len(pairs) - 1):
+            for j in range(i + 1, len(pairs)):
+                if pairs[i][0] == pairs[j][0] and pairs[i][1] == pairs[j][1]:
+                    found = (pairs[i][2], pairs[j][2])
+                    cells[pairs[i][0][0]][pairs[i][0][1]].updateHidden(found)
+                    cells[pairs[i][1][0]][pairs[i][1][1]].updateHidden(found)
+                    cells[pairs[i][0][0]][pairs[i][0][1]].entryButton.background_color = (0, 0, 1, 1)
+                    cells[pairs[i][1][0]][pairs[i][1][1]].entryButton.background_color = (0, 0, 1, 1)
+                    return True
+        # Re-initialize starting values
+        maybes.clear()
+        pairs.clear()
+        for key in nums:
+            numCount[key] = 0
+    return False
