@@ -71,6 +71,7 @@ evilExample = (0, 0, 0, 6, 0, 0, 0, 8, 0,
 
 
 class MainScreen(BoxLayout):
+    # Makes sure only one cell is selected at a time
     def switch_active(self, togglebutton):
         global pressedButton
         tb = togglebutton
@@ -85,7 +86,7 @@ class MainScreen(BoxLayout):
         else:
             for number in selection_buttons:
                 number.disabled = True
-
+    # Commits filled in puzzle to cell array
     def fill_example(self, button):
         position = 0
         if button.text == "Easy example":
@@ -123,9 +124,9 @@ class MainScreen(BoxLayout):
     
 
 class SudokuButtons(GridLayout):
+    # Creates cells and fills cell array
     def __init__(self, **kwargs):
         super(SudokuButtons, self).__init__(**kwargs)
-
         for i in range(9):
             for j in range(9):
                 size = dp(35)
@@ -138,6 +139,8 @@ class SudokuButtons(GridLayout):
 
 
 class EntryLayout(RelativeLayout):
+    # First press updates cells possible values based on entered info.
+    # Second and on generates new hints
     def run_solver(self, button):
         global step
         if button.text == "Get hint":
@@ -156,9 +159,9 @@ class EntryLayout(RelativeLayout):
 
 
 class OptionGrid(GridLayout):
+    # Creates option selection buttons
     def __init__(self, **kwargs):
         super(OptionGrid, self).__init__(**kwargs)
-
         for i in range(0, 10):
             size = dp(35)
             title = ""
@@ -167,7 +170,7 @@ class OptionGrid(GridLayout):
             b = Button(text=title, size_hint=(None, None), size=(size, size), disabled = True, on_press = self.num_entry)
             selection_buttons.append(b)
             self.add_widget(b)
-
+    # Enters writes option to selected cell
     def num_entry(self, button):
         for c in sudoku_toggles:
             if c.state == "down":
@@ -180,6 +183,7 @@ class OptionGrid(GridLayout):
             butt.disabled = True
 
 class history():
+    # A dictionary that keeps a record of each move
     def __init__(self, step, method, index):
         record = {"step": step, "method": method, "index": index}
 
