@@ -8,7 +8,7 @@ from kivy.metrics import dp
 from kivy.uix.widget import Widget
 from kivy.lang import Builder
 from kivy.properties import StringProperty
-from methods import findNextMove, checkForFillableCells, fillGreen, cell
+from methods import *
 
 sudoku_toggles = []
 selection_buttons = []
