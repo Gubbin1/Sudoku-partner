@@ -205,7 +205,7 @@ class history():
     def __init__(self, step, method, index):
         record = {"step": step, "method": method, "index": index}
 
-    
+
 class SudokuPartnerApp(App):
     def build(self):
         return MainScreen()
