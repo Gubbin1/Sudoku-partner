@@ -2,7 +2,7 @@ from unittest.mock import NonCallableMagicMock
 
 
 def findNextMove(puzz):
-    fl = [fillGreen, nakedSingle, hiddenSingle, nakedPairs, lockedCandidate, pointingTuple, hiddenPairs, nakedTriples, hiddenTriples]
+    fl = [fillGreen, nakedSingle, hiddenSingle, nakedPairs, lockedCandidate, pointingTuple, hiddenPairs, nakedTriples, hiddenTriples, Xwing, Ywing]
     check = None
     # Moves through methods in order of complexity, if progress is made return with the information.
     for f in fl:
@@ -77,7 +77,6 @@ class cell():
         if len(removed) > 0:
             return True
         return False
-
 # Holds all the necessary information for the entire puzzle
 class puzzle():
     def __init__(self):
@@ -565,3 +564,69 @@ def searchHiddenTriples(category, puzz):
         for key in puzz.nums:
             numCount[key] = 0
     return False
+
+def Xwing(puzz):
+    value = ["Xwing"]
+    if searchXwing(puzz.rows, puzz, "r"):
+        value.append("Rows")
+        return [True, value]
+    if searchXwing(puzz.columns, puzz, "c"):
+        value.append("Columns")
+        return [True, value]
+    return [False]
+
+def searchXwing(category, puzz, cat):
+    found = []
+    for n in puzz.nums:
+        # Saves every instance of number n being possible only twice in either rows or columns
+        pairs = []
+        for group in category:
+            numCount = 0
+            holder = []
+            for dex in group:
+                if n in puzz.index(dex).poss:
+                    numCount += 1
+                    holder.append(dex)
+            if numCount == 2:
+                pairs.append(holder)
+        # Compare found pairs. If rows were checked, check that the columns also match, if columns were checked, check that the rows also match
+        if cat == "r":
+            for i in range(len(pairs) - 1):
+                for j in range(i + 1, len(pairs)):
+                    if pairs[i][0][1] == pairs[j][0][1] and pairs[i][1][1] == pairs[j][1][1]:
+                        for row in range(9):
+                            if row == pairs[i][0][0] or row == pairs[j][0][0]:
+                                pass
+                            else:
+                                if n in puzz.cells[row][pairs[i][0][1]].poss:
+                                    puzz.cells[row][pairs[i][0][1]].poss.remove(n)
+                                    puzz.cells[row][pairs[i][0][1]].entryButton.background_color = (0, 0, 1, 1)
+                                    found.append((row, pairs[i][0][1]))
+                                if n in puzz.cells[row][pairs[i][1][1]].poss:
+                                    puzz.cells[row][pairs[i][1][1]].poss.remove(n)
+                                    puzz.cells[row][pairs[i][1][1]].entryButton.background_color = (0, 0, 1, 1)
+                                    found.append((row, pairs[i][1][1]))
+                        if len(found) > 0:
+                            return True
+        elif cat == "c":
+            for i in range(len(pairs) - 1):
+                for j in range(i + 1, len(pairs)):
+                    if pairs[i][0][0] == pairs[j][0][0] and pairs[i][1][0] == pairs[j][1][0]:
+                        for col in range(9):
+                            if col == pairs[i][0][1] or col == pairs[j][0][1]:
+                                pass
+                            else:
+                                if n in puzz.cells[pairs[i][0][0]][col].poss:
+                                    puzz.cells[pairs[i][0][0]][col].poss.remove(n)
+                                    puzz.cells[pairs[i][0][0]][col].entryButton.background_color = (0, 0, 1, 1)
+                                    found.append((pairs[i][1][0], col))
+                                if n in puzz.cells[pairs[i][1][0]][col].poss:
+                                    puzz.cells[pairs[i][1][0]][col].poss.remove(n)
+                                    puzz.cells[pairs[i][1][0]][col].entryButton.background_color = (0, 0, 1, 1)
+                                    found.append((pairs[i][1][0], col))
+                        if len(found) > 0:
+                            return True
+    return False
+
+def Ywing(puzz):
+    return [False]
