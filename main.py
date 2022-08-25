@@ -14,8 +14,10 @@ sudoku_toggles = []
 selection_buttons = []
 puzz = puzzle()
 step = 0
+Message = "Enter your puzzle"
 pressedButton = ToggleButton
 solveHistory = []
+
 easyExample = (6, 8, 0, 0, 0, 0, 0, 1, 7,
                 0, 0, 5, 0, 0, 3, 0, 0, 0,
                 0, 0, 0, 0, 7, 0, 6, 5, 0,
@@ -69,12 +71,21 @@ evilExample = (0, 0, 0, 6, 0, 0, 0, 8, 0,
 
 class MainScreen(BoxLayout):
     # Makes sure only one cell is selected at a time
+    Message = "Enter your puzzle"
     def switch_active(self, togglebutton):
         global pressedButton
         tb = togglebutton
+        count = 0
         for button in sudoku_toggles:
+            count += 1
             if tb == button:
+                cellCount = 0
                 pass
+                for i in range(9):
+                    for j in range(9):
+                        cellCount += 1
+                        if cellCount == count:
+                            Message = f"Cell possibilities: {puzz.cells[i][j].poss}"
             else:
                 button.state = "normal"
         if tb.state == "down":
@@ -83,6 +94,8 @@ class MainScreen(BoxLayout):
         else:
             for number in selection_buttons:
                 number.disabled = True
+
+
     # Commits filled in puzzle to cell array
     def fill_example(self, button):
         position = 0
@@ -118,24 +131,28 @@ class MainScreen(BoxLayout):
                     else:
                         puzz.cells[i][j].entryButton.text = ""
                     position += 1
-    
+
+class MiddleBit(RelativeLayout):
+    pass
 
 class SudokuButtons(GridLayout):
     # Creates cells and fills cell array
     def __init__(self, **kwargs):
         super(SudokuButtons, self).__init__(**kwargs)
+        size = dp(35)
         for i in range(9):
             for j in range(9):
-                size = dp(35)
                 b = ToggleButton(size_hint = (None, None), size = (size, size))
                 sudoku_toggles.append(b)
                 self.add_widget(b)
                 newCell = cell(i, j, b)
                 puzz.cells[i][j] = newCell
-                pass
 
 
 class EntryLayout(RelativeLayout):
+    def __init__(self,**kwargs):
+        super(EntryLayout,self).__init__(**kwargs)
+        pass
     # First press updates cells possible values based on entered info.
     # Second and on generates new hints
     def run_solver(self, button):
@@ -147,12 +164,20 @@ class EntryLayout(RelativeLayout):
                         puzz.cells[i][j].value = puzz.cells[i][j].entryButton.text
                         puzz.cells[i][j].poss.clear()
                         puzz.cells[i][j].updateRelated(puzz)
-            if nakedSingle(puzz):
-                step += 1
-                solveHistory.append(history(step, "Elimination", (i, j)))
             button.text = "Next Hint"
         else:
             findNextMove(puzz)
+    
+    def reset(self, button):
+        global puzz
+        puzz = puzzle()
+        count = 81
+        self.ids.startButton.text = "Get hint"
+        for i in range(9):
+            for j in range(9):
+                puzz.cells[i][j] = cell(i, j, sudoku_toggles[count])
+                puzz.cells[i][j].entryButton.text = ""
+                count += 1
 
 
 class OptionGrid(GridLayout):

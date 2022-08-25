@@ -1,42 +1,45 @@
-SudokuButtons:
+MainScreen:
 
 <MainScreen>:
     orientation: "vertical"
     Label:
         text: "top margin"
-        size_hint: (1, .2)
-    MiddleGrid:
+        size_hint: (1, .1)
+    MiddleBit:
+        ExampleDokus:
+            size_hint: (.2, .5)
+            orientation: "vertical"
+            Button:
+                text: "Easy example"
+                on_press: app.root.fill_example(self)
+            Button:
+                text: "Medium example"
+                on_press: app.root.fill_example(self)
+            Button:
+                text: "Hard example"
+                on_press: app.root.fill_example(self)
+            Button:
+                text: "Evil example"
+                on_press: app.root.fill_example(self)
+        SudokuButtons:
+            cols: 9
+            pos_hint: {'center_x': .5, 'top': .8}
+            size_hint: (None, None)
+            size: self.minimum_size
+        Label:
+            id: myMessage
+            text: root.Message
+            size_hint: (.2, 1)
+            pos_hint: {'right': 1}
     Label:
         size_hint: (1, .05)
     EntryLayout:
         size_hint: (1, .2)
     Label:
         size_hint: (1, .05)
-
-<MiddleGrid@BoxLayout>:
-    ExampleDokus:
-        size_hint: (.2, 1)
-    SudokuButtons:
-    Label:
-        size_hint: (.2, 1)
+    
 
 <ExampleDokus@BoxLayout>
-    orientation: "vertical"
-    Button:
-        text: "Easy example"
-        on_press: app.root.fill_example(self)
-    Button:
-        text: "Medium example"
-        on_press: app.root.fill_example(self)
-    Button:
-        text: "Hard example"
-        on_press: app.root.fill_example(self)
-    Button:
-        text: "Evil example"
-        on_press: app.root.fill_example(self)
-
-<SudokuButtons>:
-    cols: 9
 
 <OptionGrid>:
     cols: 5
@@ -56,8 +59,15 @@ SudokuButtons:
         size: (dp(80), dp(40))
     OptionGrid:
     Button:
+        id: startButton
         text: "Get hint"
         size_hint: (None, None)
         size: (dp(80), dp(40))
         pos_hint: {'right':.95, 'y':.05}
         on_press: root.run_solver(self)
+    Button:
+        text: "Reset"
+        size_hint: (None, None)
+        size: (dp(80), dp(40))
+        pos_hint: {'right': .95, 'y':1}
+        on_press: root.reset(self)

@@ -78,22 +78,19 @@ class puzzle():
         self.blockKeys = ["tl", "tm", "tr",
             "ml", "mm", "mr",
             "bl", "bm", "br"]
-        self.allGroups = []
         self.rows = []
         self.columns = []
         self.blocks = []
+        self.nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
         for i in range(9):
             row = []
             column = []
             for j in range(9):
                 row.append((i, j))
                 column.append((j, i))
-                self.allGroups.append(row)
-                self.allGroups.append(column)
 
             self.rows.append(row)
             self.columns.append(column)
-            self.allGroups.append(self.blockDic[self.blockKeys[i]])
             self.blocks.append(self.blockDic[self.blockKeys[i]])
 
     def index(self, coordinates):
@@ -143,9 +140,8 @@ def hiddenSingle(puzz):
     
 # Defines the method for searching though a group of cells for a hidden single
 def searchHiddenSingles(category, puzz):
-    nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
     for group in category:
-        for n in nums:
+        for n in puzz.nums:
             count = 0
             found = None
             for i in range(9):
@@ -161,11 +157,10 @@ def searchHiddenSingles(category, puzz):
     return False
 
 def pointingTuple(puzz):
-    nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
     info = ["Pointing Tuple", None, []]
     for key in puzz.blockKeys:
         # Checks to see if all instances of a number in a block either appear in a single row or a single column
-        for n in nums:
+        for n in puzz.nums:
             Row = True
             Col = True
             lockedRow = None
@@ -210,10 +205,43 @@ def pointingTuple(puzz):
     return [False]
 
 def lockedCandidate(puzz):
-    nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
-
+    info = ["Locked Candidate"]
+    if searchLockedCandidate(puzz.rows, puzz):
+        info.append("Row")
+        return [True, info]
+    if searchLockedCandidate(puzz.columns, puzz):
+        info.append("Column")
+        return [True, info]
     return [False]
 
+def searchLockedCandidate(category, puzz):
+    for group in category:
+        for n in puzz.nums:
+            check = []
+            for dex in group:
+                if n in puzz.index(dex).poss:
+                    check.append(dex)
+                elif n == puzz.index(dex).value or len(check) > 3:
+                    check.clear()
+                    break
+            if len(check) > 1:
+                temp = puzz.index(check[0]).block
+                found = []
+                for dex in check:
+                    if puzz.index(dex).block == temp:
+                        found.append(dex)
+                    else:
+                        found.clear()
+                        break
+            if len(found) > 0:
+                updated = []
+                for dex in puzz.blockDic[puzz.index(found[0]).block]:
+                    if dex not in found and n in puzz.cells[dex[0]][dex[1]].poss:
+                        puzz.cells[dex[0]][dex[1]].poss.remove(n)
+                        updated.append(puzz.cells[dex[0]][dex[1]])
+                if len(updated) > 0:
+                    return True
+    return False
 
 # Checks rows, columns, and blocks for pairs of cells that share the same ONLY TWO possibilities, removes those possibilities from other related cells
 def nakedPairs(puzz):
@@ -305,7 +333,6 @@ def hiddenPairs(puzz):
     return [False]
 # Check rows, columns, and blocks for instances where two numbers are only available in two cells.
 def searchHiddenPairs(category, puzz):
-    nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
     numCount = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
     maybes = []
     pairs = []
@@ -313,12 +340,12 @@ def searchHiddenPairs(category, puzz):
     # Checks rows for hidden pairs
     for group in category:
         # Count up how many times each number is possible
-        for n in nums:
+        for n in puzz.nums:
             for i in range(9):
                 if n in puzz.index(group[i]).poss:
                     numCount[n] += 1
         # Save the numbers with only two possible locations
-        for n in nums:
+        for n in puzz.nums:
             if numCount[n] == 2:
                 maybes.append(n)
         # Put indexes of paired cells in an array, with number value
@@ -345,6 +372,6 @@ def searchHiddenPairs(category, puzz):
         # Re-initialize starting values
         maybes.clear()
         pairs.clear()
-        for key in nums:
+        for key in puzz.nums:
             numCount[key] = 0
     return False
