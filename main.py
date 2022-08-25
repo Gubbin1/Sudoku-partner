@@ -163,7 +163,7 @@ class EntryLayout(RelativeLayout):
                         puzz.cells[i][j].updateRelated(puzz)
             button.text = "Next Hint"
         else:
-            findNextMove(puzz)
+            print(findNextMove(puzz))
     
     def reset(self, button):
         global puzz

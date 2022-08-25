@@ -63,11 +63,17 @@ class cell():
         self.entryButton.background_color = "white"
     # Clears out all but the values in a given list from possible
     def updateHidden(self, found):
+        removed = []
         for n in self.poss:
             if n in found:
                 pass
             else:
                 self.poss.remove(n)
+                removed.append(n)
+        if len(removed) > 0:
+            return True
+        return False
+
 
 class puzzle():
     def __init__(self):
@@ -218,6 +224,7 @@ def searchLockedCandidate(category, puzz):
     for group in category:
         for n in puzz.nums:
             check = []
+            found = []
             for dex in group:
                 if n in puzz.index(dex).poss:
                     check.append(dex)
@@ -226,7 +233,6 @@ def searchLockedCandidate(category, puzz):
                     break
             if len(check) > 1:
                 temp = puzz.index(check[0]).block
-                found = []
                 for dex in check:
                     if puzz.index(dex).block == temp:
                         found.append(dex)
@@ -274,9 +280,10 @@ def searchNakedPairs(category, puzz):
         if len(maybes) > 1:
             found = checkPairs(maybes)
         if found != False:
-            updateNakedPair(found, puzz)
-            return True
+            if updateNakedPair(found, puzz):
+                return True
         maybes.clear()
+    return False
 
 def checkPairs(group):
     for i in range(len(group) - 1):
@@ -291,6 +298,7 @@ def updateNakedPair(pair, puzz):
     cell1 = pair[0]
     cell2 = pair[1]
     pairValues = puzz.index(cell1).poss
+    updated = []
     # If the pair occurred in a row, clear related cells in the row
     if cell1[0] == cell2[0]:
         for dex in puzz.rows[cell1[0]]:
@@ -298,6 +306,7 @@ def updateNakedPair(pair, puzz):
                 for i in range(2):
                     if pairValues[i] in puzz.cells[dex[0]][dex[1]].poss:
                         puzz.cells[dex[0]][dex[1]].poss.remove(pairValues[i])
+                        updated.append(dex)
     # Otherwise if the pair occurred in a column, clear related cells from the column
     elif cell1[1] == cell2[1]:
         for dex in puzz.columns[cell1[1]]:
@@ -305,13 +314,19 @@ def updateNakedPair(pair, puzz):
                 for i in range(2):
                     if pairValues[i] in puzz.cells[dex[0]][dex[1]].poss:
                         puzz.cells[dex[0]][dex[1]].poss.remove(pairValues[i])
+                        updated.append(dex)
     # Pairs from rows or columns can also share a block, so always checks the blocks for pairs
     if puzz.index(cell1).block == puzz.index(cell2).block:
-        for dex in puzz.blocks[puzz.index(cell1).block]:
+        for dex in puzz.blockDic[puzz.index(cell1).block]:
             if dex != cell1 and dex != cell2:
                 for i in range(2):
                     if pairValues[i] in puzz.cells[dex[0]][dex[1]].poss:
                         puzz.cells[dex[0]][dex[1]].poss.remove(pairValues[i])
+                        updated.append(dex)
+    if len(updated) > 0:
+        return True
+    else:
+        return False
 
 def hiddenPairs(puzz):
     info = None
@@ -364,11 +379,15 @@ def searchHiddenPairs(category, puzz):
                 for j in range(i + 1, len(pairs)):
                     if pairs[i][0] == pairs[j][0] and pairs[i][1] == pairs[j][1]:
                         found = (pairs[i][2], pairs[j][2])
-                        puzz.cells[pairs[i][0][0]][pairs[i][0][1]].updateHidden(found)
-                        puzz.cells[pairs[i][1][0]][pairs[i][1][1]].updateHidden(found)
-                        puzz.cells[pairs[i][0][0]][pairs[i][0][1]].entryButton.background_color = (0, 0, 1, 1)
-                        puzz.cells[pairs[i][1][0]][pairs[i][1][1]].entryButton.background_color = (0, 0, 1, 1)
-                        return True
+                        removed = 0
+                        if puzz.cells[pairs[i][0][0]][pairs[i][0][1]].updateHidden(found):
+                            removed += 1
+                            puzz.cells[pairs[i][0][0]][pairs[i][0][1]].entryButton.background_color = (0, 0, 1, 1)
+                        if puzz.cells[pairs[i][1][0]][pairs[i][1][1]].updateHidden(found):
+                            removed += 1
+                            puzz.cells[pairs[i][1][0]][pairs[i][1][1]].entryButton.background_color = (0, 0, 1, 1)
+                        if removed > 0:
+                            return True
         # Re-initialize starting values
         maybes.clear()
         pairs.clear()
