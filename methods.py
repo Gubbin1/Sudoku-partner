@@ -1,30 +1,33 @@
-def findNextMove(cells, blocks):
+def findNextMove(puzz):
+    check = None
     # Moves through methods in order of complexity, if progress is made return with the information.
-    if not fillGreen(cells, blocks):
+    if not fillGreen(puzz):
         pass
     else:
         return
-    if not checkForFillableCells(cells):
+    if not nakedSingle(puzz):
         pass
     else:
-        return "Elimination"
-    if not hiddenSingle(cells, blocks):
+        return "nakedSingle"
+    check = hiddenSingle(puzz)
+    if not check[0]:
         pass
     else:
-        return "Hidden single"
-    if not nakedPairs(cells, blocks):
+        return check[1]
+    check = nakedPairs(puzz)
+    if not check[0]:
         pass
     else:
-        return "Naked Pair"
-    if not lockedCandidate(cells, blocks):
+        return check[1]
+    if not lockedCandidate(puzz):
         pass
     else:
         return "Locked Candidate"
-    if not pointingTuple(cells, blocks):
+    if not pointingTuple(puzz):
         pass
     else:
         return "Pointing Tuple"
-    if not hiddenPairs(cells, blocks):
+    if not hiddenPairs(puzz):
         pass
     else:
         return "Hidden Pair"
@@ -58,24 +61,24 @@ class cell():
         elif 5 < self.row < 9 and 5 < self.column < 9:
             self.block = "br"
     # When a cell's answer is found, remove its value from the possibilities of all related cells
-    def updateRelated(self, cells, blocks):
+    def updateRelated(self, puzz):
         thisRow = self.row
         thisCol = self.column
         for i in range(9):
             if i == thisRow:
                 pass
-            elif self.value in cells[i][self.column].poss:
-                cells[i][self.column].poss.remove(self.value)
+            elif self.value in puzz.cells[i][self.column].poss:
+                puzz.cells[i][self.column].poss.remove(self.value)
 
             if i == thisCol:
                 pass
-            elif self.value in cells[self.row][i].poss:
-                cells[self.row][i].poss.remove(self.value)
+            elif self.value in puzz.cells[self.row][i].poss:
+                puzz.cells[self.row][i].poss.remove(self.value)
 
-            if thisRow == blocks[self.block][i][0] and blocks[self.block][i][1] == thisCol:
+            if thisRow == puzz.blocks[self.block][i][0] and puzz.blocks[self.block][i][1] == thisCol:
                 pass
-            elif self.value in cells[blocks[self.block][i][0]][blocks[self.block][i][1]].poss:
-                cells[blocks[self.block][i][0]][blocks[self.block][i][1]].poss.remove(self.value)
+            elif self.value in puzz.cells[puzz.blocks[self.block][i][0]][puzz.blocks[self.block][i][1]].poss:
+                puzz.cells[puzz.blocks[self.block][i][0]][puzz.blocks[self.block][i][1]].poss.remove(self.value)
     # When there is only one possibility, fill in value with that possibility. If the answer has been found by other means, display the answer and clear out the possibilities
     def fill(self):
         if self.value == None and len(self.poss) == 1:
@@ -91,82 +94,87 @@ class cell():
             else:
                 self.poss.remove(n)
 
+class puzzle():
+    def __init__(self):
+        self.cells = [[None for i in range(9)] for j in range(9)]
+        self.blockDic = {"tl": [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)], "tm": [(0,3),(0,4),(0,5),(1,3),(1,4),(1,5),(2,3),(2,4),(2,5)], "tr": [(0,6),(0,7),(0,8),(1,6),(1,7),(1,8),(2,6),(2,7),(2,8)],
+                "ml": [(3,0),(3,1),(3,2),(4,0),(4,1),(4,2),(5,0),(5,1),(5,2)], "mm": [(3,3),(3,4),(3,5),(4,3),(4,4),(4,5),(5,3),(5,4),(5,5)], "mr": [(3,6),(3,7),(3,8),(4,6),(4,7),(4,8),(5,6),(5,7),(5,8)],
+                "bl": [(6,0),(6,1),(6,2),(7,0),(7,1),(7,2),(8,0),(8,1),(8,2)], "bm": [(6,3),(6,4),(6,5),(7,3),(7,4),(7,5),(8,3),(8,4),(8,5)], "br": [(6,6),(6,7),(6,8),(7,6),(7,7),(7,8),(8,6),(8,7),(8,8)]}
+        self.blockKeys = ["tl", "tm", "tr",
+            "ml", "mm", "mr",
+            "bl", "bm", "br"]
+        self.allGroups = []
+        self.rows = []
+        self.columns = []
+        self.blocks = []
+        for i in range(9):
+            row = []
+            column = []
+            for j in range(9):
+                row.append((i, j))
+                column.append((j, i))
+                self.allGroups.append(row)
+                self.allGroups.append(column)
+
+            self.rows.append(row)
+            self.columns.append(column)
+            self.allGroups.append(self.blockDic[self.blockKeys[i]])
+            self.blocks.append(self.blockDic[self.blockKeys[i]])
+
+    def index(self, coordinates):
+        return self.cells[coordinates[0]][coordinates[1]]
+
+
 # Check the grid for the green cell and fills it. Cells are made green when they are next to be answered.
-def fillGreen(cells, blocks):
+def fillGreen(puzz):
     for i in range(9):
         for j in range(9):
-            if cells[i][j].entryButton.background_color == [0, 1, 0, 1]:
-                cells[i][j].fill()
-                cells[i][j].updateRelated(cells, blocks)
+            if puzz.cells[i][j].entryButton.background_color == [0, 1, 0, 1]:
+                puzz.cells[i][j].fill()
+                puzz.cells[i][j].updateRelated(puzz)
                 return True
     return False
 
 # Looks for cells with only one possibility and colors the first one found green
-def checkForFillableCells(cells):
+def nakedSingle(puzz):
     for i in range(9):
         for j in range(9):
-            if len(cells[i][j].poss) == 1:
-                cells[i][j].entryButton.background_color = (0, 1, 0, 1)
+            if len(puzz.cells[i][j].poss) == 1:
+                puzz.cells[i][j].entryButton.background_color = (0, 1, 0, 1)
                 return True
     return False
 
 # Checks rows, columns, and blocks for cells where there is only one possible place for a given value
-def hiddenSingle(cells, blocks):
-
+def hiddenSingle(puzz):
+    if not searchHiddenSingles(puzz.rows, puzz):
+        pass
+    else: return [True, "Row"]
+    if not searchHiddenSingles(puzz.columns, puzz):
+        pass
+    else: return [True, "Column"]
+    if not searchHiddenSingles(puzz.blocks, puzz):
+        pass
+    else: return [True, "Block"]
+    return [False, None]
+    
+# Defines the method for searching though a group of cells for a hidden single
+def searchHiddenSingles(category, puzz):
     nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
-    keys = ["tl", "tm", "tr",
-            "ml", "mm", "mr",
-            "bl", "bm", "br"]
-
-    cellRow = None
-    cellCol = None
-    # Checks rows for instances where a given value appears only once
-    for group in cells:
+    for group in category:
         for n in nums:
             count = 0
+            found = None
             for i in range(9):
-                if n == group[i].value or count > 1:
+                if n == puzz.index(group[i]).value or count > 1:
                     break
-                if n in group[i].poss:
+                if n in puzz.index(group[i]).poss:
                     count += 1
-                    cellRow = group[i].row
-                    cellCol = i
+                    found = group[i]
             if count == 1:
-                cells[cellRow][cellCol].entryButton.background_color = (0, 1, 0, 1)
-                cells[cellRow][cellCol].value = n
+                puzz.cells[found[0]][found[1]].entryButton.background_color = (0, 1, 0, 1)
+                puzz.cells[found[0]][found[1]].value = n
                 return True
-    # Checks columns for instances where a given value appears only once
-    for i in range(9):
-        for n in nums:
-            count = 0
-            for j in range(9):
-                if n == cells[j][i].value or count > 1:
-                    break
-                if n in cells[j][i].poss:
-                    count += 1
-                    cellRow = j
-                    cellCol = i
-            if count == 1:
-                cells[cellRow][cellCol].entryButton.background_color = (0, 1, 0, 1)
-                cells[cellRow][cellCol].value = n
-                return True
-    # Checks blocks for instances where a given value appears only once
-    for block in keys:
-        for n in nums:
-            count = 0
-            for i in range(9):
-                if n == cells[blocks[block][i][0]][blocks[block][i][1]].value or count > 1:
-                    break
-                if n in cells[blocks[block][i][0]][blocks[block][i][1]].poss:
-                    count += 1
-                    cellRow = blocks[block][i][0]
-                    cellCol = blocks[block][i][1]
-            if count == 1:
-                cells[cellRow][cellCol].entryButton.background_color = (0, 1, 0, 1)
-                print(f"{cellRow}, {cellCol}, {n}")
-                cells[cellRow][cellCol].value = n
-                return True
-
+    return False
 
 def lockedCandidate(cells, blocks):
     keys = ["tl", "tm", "tr",
@@ -225,82 +233,77 @@ def pointingTuple(cells, blocks):
 
 
 # Checks rows, columns, and blocks for pairs of cells that share the same ONLY TWO possibilities, removes those possibilities from other related cells
-def nakedPairs(cells, blocks):
-    maybes = []
-    found = False
-    keys = ["tl", "tm", "tr",
-            "ml", "mm", "mr",
-            "bl", "bm", "br"]
-    # Checks rows for cells with only two possibilities, stores them.
-    for line in cells:
-        for i in range(9):
-            if len(line[i].poss) == 2:
-                maybes.append(line[i])
-        if len(maybes) > 1:
-            found = checkPairs(maybes)
-        if found != False:
-            updateNakedPair((maybes[found[0]], maybes[found[1]]), cells, blocks)
-            return True
-        maybes.clear()
-    # Checks columns for cells with only two possibilities, stores them.
-    for j in range(9):
-        for i in range(9):
-            if len(cells[i][j].poss) == 2:
-                maybes.append(cells[i][j])
-        if len(maybes) > 1:
-            found = checkPairs(maybes)
-        if found != False:
-            updateNakedPair((maybes[found[0]], maybes[found[1]]), cells, blocks)
-            return True
-        maybes.clear()
-    # Checks blocks for cells with only two possibilities, stores them.
-    for key in keys:
-        for index in blocks[key]:
-            if len(cells[index[0]][index[1]].poss) == 2:
-                maybes.append(cells[index[0]][index[1]])
-        if len(maybes) > 1:
-            found = checkPairs(maybes)
-        if found != False:
-            updateNakedPair((maybes[found[0]], maybes[found[1]]), cells, blocks)
-            return True
-        maybes.clear()
-    return False
+def nakedPairs(puzz):
+    info = None
+    if not searchNakedPairs(puzz.rows, puzz):
+        pass
+    else: 
+        info = ["Naked Pair", "Row"]
+        return [True, info]
+    if not searchNakedPairs(puzz.columns, puzz):
+        pass
+    else: 
+        info = ["Naked Pair", "Column"]
+        return [True, info]
+    if not searchNakedPairs(puzz.blocks, puzz):
+        pass
+    else: 
+        info = ["Naked Pair", "Block"]
+        return [True, info]
+    return [False, info]
 
 # Goes through a list of cells, returns the first pair found.
+def searchNakedPairs(category, puzz):
+    for group in category:
+        maybes = []
+        found = False
+        for i in range(9):
+            if len(puzz.index(group[i]).poss) == 2:
+                maybes.append(puzz.index(group[i]))
+        if len(maybes) > 1:
+            found = checkPairs(maybes)
+        if found != False:
+            updateNakedPair(found, puzz)
+            return True
+        maybes.clear()
+
 def checkPairs(group):
     for i in range(len(group) - 1):
         temp = group[i].poss
-        for j in range(1, len(group)):
+        for j in range(i + 1, len(group)):
             if temp == group[j].poss:
-                return ((i, j))
+                return ((group[i].index, group[j].index))
     return False
 
 # Clears possiilities for cells related to a pair
-def updateNakedPair(pair, cells, blocks):
-    pairRow = pair[0].row
-    pairCol = pair[0].column
-    pairBlock = pair[0].block
+def updateNakedPair(pair, puzz):
+    cell1 = pair(0)
+    cell2 = pair(1)
+    pairValues = puzz.index(cell1).poss
     # If the pair occurred in a row, clear related cells in the row
-    if pairRow == pair[1].row:
-        for i in range(9):
-            for j in range(2):
-                if cells[pairRow][i] not in pair and pair[0].poss[j] in cells[pairRow][i].poss:
-                    cells[pairRow][i].poss.remove(pair[0].poss[j])
+    if cell1[0] == cell2[0]:
+        for dex in puzz.rows[cell1[0]]:
+            if dex != cell1 and dex != cell2:
+                for i in range(2):
+                    if pairValues[i] in puzz.cells[dex[0]][dex[1]].poss:
+                        puzz.cells[dex[0]][dex[1]].poss.remove(pairValues[i])
     # Otherwise if the pair occurred in a column, clear related cells from the column
-    elif pairCol == pair[1].column:
-        for i in range(9):
-            for j in range(2):
-                if cells[i][pairCol] not in pair and pair[0].poss[j] in cells[i][pairCol].poss:
-                    cells[i][pairCol].poss.remove(pair[0].poss[j])
+    elif cell1[1] == cell2[1]:
+        for dex in puzz.columns[cell1[1]]:
+            if dex != cell1 and dex != cell2:
+                for i in range(2):
+                    if pairValues[i] in puzz.cells[dex[0]][dex[1]].poss:
+                        puzz.cells[dex[0]][dex[1]].poss.remove(pairValues[i])
     # Pairs from rows or columns can also share a block, so always checks the blocks for pairs
-    if pairBlock == pair[1].block:
-        for index in blocks[pairBlock]:
-            for j in range(2):
-                if cells[index[0]][index[1]] not in pair and pair[0].poss[j] in cells[index[0]][index[1]].poss:
-                    cells[index[0]][index[1]].poss.remove(pair[0].poss[j])
+    if puzz.index(cell1).block == puzz.index(cell2).block:
+        for dex in puzz.blocks[puzz.index(cell1).block]:
+            if dex != cell1 and dex != cell2:
+                for i in range(2):
+                    if pairValues[i] in puzz.cells[dex[0]][dex[1]].poss:
+                        puzz.cells[dex[0]][dex[1]].poss.remove(pairValues[i])
 
 # Check rows, columns, and blocks for instances where two numbers are only available in two cells.
-def hiddenPairs(cells, blocks):
+def hiddenPairs(puzz):
     keys = ["tl", "tm", "tr",
             "ml", "mm", "mr",
             "bl", "bm", "br"]
