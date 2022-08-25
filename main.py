@@ -14,7 +14,6 @@ sudoku_toggles = []
 selection_buttons = []
 puzz = puzzle()
 step = 0
-Message = "Enter your puzzle"
 pressedButton = ToggleButton
 solveHistory = []
 
@@ -70,24 +69,22 @@ evilExample = (0, 0, 0, 6, 0, 0, 0, 8, 0,
 
 
 class MainScreen(BoxLayout):
+    def __init__(self, **kwargs):
+        super(MainScreen, self).__init__(**kwargs)
+        self.Message = "Enter your puzzle"
     # Makes sure only one cell is selected at a time
-    Message = "Enter your puzzle"
     def switch_active(self, togglebutton):
         global pressedButton
         tb = togglebutton
         count = 0
-        for button in sudoku_toggles:
-            count += 1
-            if tb == button:
-                cellCount = 0
-                pass
-                for i in range(9):
-                    for j in range(9):
-                        cellCount += 1
-                        if cellCount == count:
-                            Message = f"Cell possibilities: {puzz.cells[i][j].poss}"
-            else:
-                button.state = "normal"
+        for i in range(9):
+            for j in range(9):
+                if tb == puzz.cells[i][j].entryButton:
+                    cellCount = 0
+                    cellCount += 1
+                    self.ids.myMessage.text = f"Cell possibilities: \n {puzz.cells[i][j].poss}"
+                else:
+                    puzz.cells[i][j].entryButton.state = "normal"
         if tb.state == "down":
             for number in selection_buttons:
                 number.disabled = False
@@ -177,6 +174,8 @@ class EntryLayout(RelativeLayout):
             for j in range(9):
                 puzz.cells[i][j] = cell(i, j, sudoku_toggles[count])
                 puzz.cells[i][j].entryButton.text = ""
+                puzz.cells[i][j].entryButton.background_color = (1, 1, 1, 1)
+                puzz.cells[i][j].entryButton.state = "normal"
                 count += 1
 
 
