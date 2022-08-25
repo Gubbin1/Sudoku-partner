@@ -1,5 +1,8 @@
+from unittest.mock import NonCallableMagicMock
+
+
 def findNextMove(puzz):
-    fl = [fillGreen, nakedSingle, hiddenSingle, nakedPairs, lockedCandidate, pointingTuple, hiddenPairs]
+    fl = [fillGreen, nakedSingle, hiddenSingle, nakedPairs, lockedCandidate, pointingTuple, hiddenPairs, nakedTriples]
     check = None
     # Moves through methods in order of complexity, if progress is made return with the information.
     for f in fl:
@@ -101,7 +104,6 @@ class puzzle():
 
     def index(self, coordinates):
         return self.cells[coordinates[0]][coordinates[1]]
-
 
 # Check the grid for the green cell and fills it. Cells are made green when they are next to be answered.
 def fillGreen(puzz):
@@ -394,3 +396,94 @@ def searchHiddenPairs(category, puzz):
         for key in puzz.nums:
             numCount[key] = 0
     return False
+
+def nakedTriples(puzz):
+    info = None
+    if not searchNakedTriples(puzz.rows, puzz):
+        pass
+    else: 
+        info = ["Naked Triple", "Row"]
+        return [True, info]
+    if not searchNakedTriples(puzz.columns, puzz):
+        pass
+    else: 
+        info = ["Naked Triple", "Column"]
+        return [True, info]
+    if not searchNakedTriples(puzz.blocks, puzz):
+        pass
+    else: 
+        info = ["Naked Triple", "Block"]
+        return [True, info]
+    return [False]
+
+def searchNakedTriples(category, puzz):
+    for group in category:
+        maybes = []
+        found = False
+        for i in range(9):
+            if 2 <= len(puzz.index(group[i]).poss) <= 3:
+                maybes.append(puzz.index(group[i]))
+        if len(maybes) > 2:
+            found = checkTriples(maybes)
+        if found != False:
+            if updateNakedTriple(found, puzz):
+                return True
+        maybes.clear()
+    return False
+
+def checkTriples(group):
+    length = len(group)
+    cells = [None, None, None]
+    for i in range(0, length - 2):
+        for j in range (i + 1, length - 1):
+            for k in range(j + 1, length):
+                allPoss = []
+                uniquePoss = []
+                cells[0] = group[i]
+                cells[1] = group[j]
+                cells[2] = group[k]
+                for x in range(3):
+                    allPoss.extend(cells[x].poss)
+                for x in allPoss:
+                    if x not in uniquePoss:
+                        uniquePoss.append(x)
+                if len(uniquePoss) == 3:
+                    return [cells[0].index, cells[1].index, cells[2].index]
+    return False
+
+def updateNakedTriple(trip, puzz):
+    cells = [trip[0], trip[1], trip[2]]
+    tripValues = []
+    for dex in cells:
+        for n in puzz.index(dex).poss:
+            if n not in tripValues:
+                tripValues.append(n)
+    updated = []
+    # If the triple occurred in a row, clear related cells in the row
+    if cells[0][0] == cells[1][0] and cells[1][0] == cells[2][0]:
+        for dex in puzz.rows[cells[0][0]]:
+            if dex != cells[0] and dex != cells[1] and dex != cells[2]:
+                for i in range(3):
+                    if tripValues[i] in puzz.cells[dex[0]][dex[1]].poss:
+                        puzz.cells[dex[0]][dex[1]].poss.remove(tripValues[i])
+                        updated.append(dex)
+    # Otherwise if the triple occurred in a column, clear related cells from the column
+    elif cells[0][1] == cells[1][1] and cells[1][1] == cells[2][1]:
+        for dex in puzz.columns[cells[0][1]]:
+            if dex != cells[0] and dex != cells[1] and dex != cells[2]:
+                for i in range(3):
+                    if tripValues[i] in puzz.cells[dex[0]][dex[1]].poss:
+                        puzz.cells[dex[0]][dex[1]].poss.remove(tripValues[i])
+                        updated.append(dex)
+    # Triples from rows or columns can also share a block, so always checks the blocks for triples
+    if puzz.index(cells[0]).block == puzz.index(cells[1]).block and puzz.index(cells[1]).block == puzz.index(cells[2]).block:
+        for dex in puzz.blockDic[puzz.index(cells[0]).block]:
+            if dex != cells[0] and dex != cells[1] and dex != cells[2]:
+                for i in range(3):
+                    if tripValues[i] in puzz.cells[dex[0]][dex[1]].poss:
+                        puzz.cells[dex[0]][dex[1]].poss.remove(tripValues[i])
+                        updated.append(dex)
+    if len(updated) > 0:
+        return True
+    else:
+        return False
