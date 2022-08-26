@@ -591,7 +591,7 @@ def searchHiddenTriples(category, puzz):
                                 if puzz.cells[dex[0]][dex[1]].updateHidden(found):
                                     puzz.cells[dex[0]][dex[1]].entryButton.background_color = (0, 0, 1, 1)
                                     removed.append(dex)
-                            if removed > 0:
+                            if len(removed) > 0:
                                 return [True, removed, found]
         # Re-initialize starting values
         maybes.clear()

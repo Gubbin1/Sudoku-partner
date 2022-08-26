@@ -1,6 +1,7 @@
 from kivy.config import Config
 
-
+Config.set('graphics', 'width', '600')
+Config.set('graphics', 'height', '800')
 
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -43,15 +44,15 @@ mediumExample = (4, 8, 0, 0, 0, 0, 5, 0, 0,
                 0, 0, 3, 0, 0, 0, 0, 2, 5,
                 0, 0, 0, 0, 6, 2, 9, 0, 3)
 
-hardExample = (0, 0, 0, 0, 0, 0, 6, 0, 0, 
-                0, 0, 0, 7, 0, 0, 8, 0, 5,
-                0, 0, 1, 0, 2, 8, 0, 3, 0, 
-                0, 0, 0, 0, 0, 6, 0, 2, 8,
-                0, 0, 2, 1, 5, 0, 9, 0, 0,
-                0, 0, 0, 0, 0, 4, 0, 7, 0,
-                0, 8, 4, 0, 0, 0, 0, 5, 0, 
-                0, 0, 3, 5, 4, 0, 0, 0, 7,
-                2, 0, 7, 0, 0, 0, 4, 0, 9)
+hardExample = (0, 0, 0, 0, 6, 0, 4, 2, 0,
+                5, 0, 0, 0, 0, 7, 0, 8, 0, 
+                0, 0, 7, 0, 0, 0, 0, 0, 0, 
+                6, 1, 0, 0, 0, 0, 5, 0, 0, 
+                0, 0, 0, 0, 8, 0, 0, 3, 0, 
+                0, 5, 8, 0, 0, 9, 0, 0, 0,
+                4, 0, 0, 0, 2, 0, 0, 0, 0,
+                0, 0, 1, 4, 0, 0, 0, 0, 6,
+                2, 0, 6, 0, 0, 0, 0, 0, 9)
 
 expertExample = (0, 9, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 1, 9, 0, 3, 0, 7,
@@ -87,7 +88,7 @@ class MainScreen(BoxLayout):
                 if tb == puzz.cells[i][j].entryButton:
                     cellCount = 0
                     cellCount += 1
-                    self.ids.myMessage.text = f"Cell possibilities: \n {puzz.cells[i][j].poss}"
+                    self.ids.cellData.text = f"Cell possibilities: \n {puzz.cells[i][j].poss}"
                 else:
                     puzz.cells[i][j].entryButton.state = "normal"
         if tb.state == "down":
@@ -125,11 +126,11 @@ class MainScreen(BoxLayout):
                     else:
                         puzz.cells[i][j].entryButton.text = ""
                     position += 1
-        elif button.text == "Evil example":
+        elif button.text == "Expert example":
             for i in range(9):
                 for j in range(9):
-                    if evilExample[position] > 0:
-                        puzz.cells[i][j].entryButton.text = str(evilExample[position])
+                    if expertExample[position] > 0:
+                        puzz.cells[i][j].entryButton.text = str(expertExample[position])
                     else:
                         puzz.cells[i][j].entryButton.text = ""
                     position += 1
@@ -194,7 +195,7 @@ class EntryLayout(RelativeLayout):
     def reset(self, button):
         global puzz
         puzz = puzzle()
-        count = 81
+        count = 0
         self.ids.startButton.text = "Lock in puzzle"
         
         for i in range(9):

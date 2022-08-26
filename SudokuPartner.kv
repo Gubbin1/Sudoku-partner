@@ -1,5 +1,3 @@
-MainScreen:
-
 <MainScreen>:
     canvas.before:
         Rectangle:
@@ -7,7 +5,8 @@ MainScreen:
             source: 'images/bg_gradient.jpg'
     orientation: "vertical"
     Label:
-        text: "top margin"
+        id: cellData
+        text: "Click a cell for detailed info"
         size_hint: (1, .1)
     MiddleBit:
         ExampleDokus:
@@ -23,25 +22,14 @@ MainScreen:
                 text: "Hard example"
                 on_press: app.root.fill_example(self)
             Button:
-                text: "Evil example"
+                text: "Expert example"
                 on_press: app.root.fill_example(self)
         SudokuButtons:
-            canvas.before:
-                Color: 
-                    rgba: 0, 0, 0, 1
-                Rectangle:
-                    size: self.width, self.width
-                    pos: self.width/5.05, self.height / 2
-
             padding: 2, 2, 2, 2
             cols: 12
 
-
         Label:
-            id: myMessage
-            text: "Select a cell"
             size_hint: (.2, 1)
-            pos_hint: {'right': .95}
     EntryLayout:
         size_hint: (1, .1)
     
@@ -69,6 +57,7 @@ MainScreen:
         size_hint: (None, None)
         size: (dp(80), dp(40))
     OptionGrid:
+        pos_y: self.height / 2
     BoxLayout:
         orientation: "vertical"
         pos_hint: {'x': .85}
