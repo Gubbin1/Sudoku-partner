@@ -73,7 +73,6 @@ class MainScreen(BoxLayout):
     def switch_active(self, togglebutton):
         global pressedButton
         tb = togglebutton
-        count = 0
         for i in range(9):
             for j in range(9):
                 if tb == puzz.cells[i][j].entryButton:
@@ -135,12 +134,21 @@ class SudokuButtons(GridLayout):
         super(SudokuButtons, self).__init__(**kwargs)
         size = dp(35)
         for i in range(9):
-            for j in range(9):
-                b = ToggleButton(size_hint = (None, None), size = (size, size))
-                sudoku_toggles.append(b)
-                self.add_widget(b)
-                newCell = cell(i, j, b)
-                puzz.cells[i][j] = newCell
+#            g = SudokuBlock(size_hint = (None, None), size = self.minimum_size)
+#           self.add_widget(g)
+            for j in range(3):
+                for k in range(3):
+                    b = ToggleButton(size_hint = (None, None), size = (size, size))
+                    sudoku_toggles.append(b)
+                    self.add_widget(b)
+                    row, col = puzz.blocks[i][(j * 3) + k][0], puzz.blocks[i][(j * 3) + k][1]
+                    newCell = cell(row, col, b)
+                    puzz.cells[row][col] = newCell
+
+class SudokuBlock(GridLayout):
+    def __init__(self, **kwargs):
+        super(SudokuBlock, self).__init__(**kwargs)
+        self.cols = 3
 
 
 class EntryLayout(RelativeLayout):
@@ -160,7 +168,9 @@ class EntryLayout(RelativeLayout):
                         puzz.cells[i][j].updateRelated(puzz)
             button.text = "Next Hint"
         else:
-            print(findNextMove(puzz))
+            move = findNextMove(puzz)
+            if move[0]:
+                print(move[1].record)
     
     def reset(self, button):
         global puzz
@@ -199,11 +209,6 @@ class OptionGrid(GridLayout):
                 return
         for butt in selection_buttons:
             butt.disabled = True
-
-class history():
-    # A dictionary that keeps a record of each move
-    def __init__(self, step, method, index):
-        record = {"step": step, "method": method, "index": index}
 
 
 class SudokuPartnerApp(App):

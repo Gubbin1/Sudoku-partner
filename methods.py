@@ -8,8 +8,8 @@ def findNextMove(puzz):
     for f in fl:
         check = f(puzz)
         if check[0]:
-            return check[1]
-    return "Sorry, that's as far as I know."
+            return [True, check[1]]
+    return [False, "Sorry, that's as far as I know."]
 
 # Cells have their position in the cell array, their corresponding button, their possible values, and when answered their actual value.
 class cell(): 
@@ -77,6 +77,17 @@ class cell():
         if len(removed) > 0:
             return True
         return False
+        
+    def sees(self, index, puzz):
+        if self.index == index:
+            return False
+        elif self.row == index[0]:
+            return True
+        elif self.column == index[1]:
+            return True
+        elif index in puzz.blockDic[self.block]:
+            return True
+        return False
 # Holds all the necessary information for the entire puzzle
 class puzzle():
     def __init__(self):
@@ -105,6 +116,11 @@ class puzzle():
     def index(self, coordinates):
         return self.cells[coordinates[0]][coordinates[1]]
 
+class history():
+    # A dictionary that keeps a record of each move
+    def __init__(self, method, cause, effect, num, category):
+        self.record = {"method": method, "cause": cause, "effect": effect, "number": num, "category": category}
+
 # Check the grid for the green cell and fills it. Cells are made green when they are next to be answered.
 def fillGreen(puzz):
     info = None
@@ -113,34 +129,40 @@ def fillGreen(puzz):
             if puzz.cells[i][j].entryButton.background_color == [0, 1, 0, 1]:
                 puzz.cells[i][j].fill()
                 puzz.cells[i][j].updateRelated(puzz)
-                info = ["Fill Green"]
+                info = history("Fill In", [(i, j)], [], puzz.cells[i][j].value, "Cell")
                 return [True, info]
+            puzz.cells[i][j].entryButton.background_color = [1, 1, 1, 1]
     return [False]
 # Looks for cells with only one possibility and colors the first one found green
 def nakedSingle(puzz):
+    info = None
     for i in range(9):
         for j in range(9):
             if len(puzz.cells[i][j].poss) == 1:
                 puzz.cells[i][j].entryButton.background_color = (0, 1, 0, 1)
-                return [True, "Naked Single"]
+                info = history("Naked Single", [(i, j)], [], puzz.cells[i][j].poss[0], "Cell")
+                return [True, info]
     return [False]
 # Checks rows, columns, and blocks for cells where there is only one possible place for a given value
 def hiddenSingle(puzz):
     info = None
-    if not searchHiddenSingles(puzz.rows, puzz):
+    check = searchHiddenSingles(puzz.rows, puzz)
+    if not check[0]:
         pass
     else:
-        info = ["Hidden Single", "Row"] 
+        info = history("Hidden Single", check[1], [], check[2], "Row") 
         return [True, info]
-    if not searchHiddenSingles(puzz.columns, puzz):
+    check = searchHiddenSingles(puzz.columns, puzz)
+    if not check[0]:
         pass
     else:
-        info = ["Hidden Single", "Column"]  
+        info = history("Hidden Single", check[1], [], check[2], "Column") 
         return [True, info]
-    if not searchHiddenSingles(puzz.blocks, puzz):
+    check = searchHiddenSingles(puzz.blocks, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Hidden Single", "Block"]  
+        info = history("Hidden Single", check[1], [], check[2], "Block") 
         return [True, info]
     return [False]  
 # Defines the method for searching though a group of cells for a hidden single
@@ -158,11 +180,11 @@ def searchHiddenSingles(category, puzz):
             if count == 1:
                 puzz.cells[found[0]][found[1]].entryButton.background_color = (0, 1, 0, 1)
                 puzz.cells[found[0]][found[1]].value = n
-                return True
-    return False
+                return [True, found, n]
+    return [False]
 # Looks for places where numbers occuring in a block all exist in the same row or column, allowing for eliminations in the remainder of the row or column
 def pointingTuple(puzz):
-    info = ["Pointing Tuple", None, []]
+    info = ["Pointer", None, [], None]
     for key in puzz.blockKeys:
         # Checks to see if all instances of a number in a block either appear in a single row or a single column
         for n in puzz.nums:
@@ -196,7 +218,8 @@ def pointingTuple(puzz):
                             done.append(dex)
                     if len(done) > 0:
                         info[2] = done
-                        return [True, info]
+                        hist = history(info[0], holder, info[2], n, info[1])
+                        return [True, hist]
                 elif Col == True:
                     for dex in puzz.columns[lockedCol]:
                         if puzz.index(dex).block != key and n in puzz.index(dex).poss:
@@ -205,18 +228,20 @@ def pointingTuple(puzz):
                             done.append(dex)
                     if len(done) > 0:
                         info[2] = done
-                        return [True, info]
+                        hist = history(info[0], holder, info[2], n, info[1])
+                        return [True, hist]
 
     return [False]
 # Looks for instances where numbers occuring in a row or column all exist in the same block, allowing the elimination of those numbers in the remainder of the block
 def lockedCandidate(puzz):
-    info = ["Locked Candidate"]
-    if searchLockedCandidate(puzz.rows, puzz):
-        info.append("Row")
-        return [True, info]
-    if searchLockedCandidate(puzz.columns, puzz):
-        info.append("Column")
-        return [True, info]
+    info = searchLockedCandidate(puzz.rows, puzz)
+    if info[0]:
+        hist = history("Locked Candidate", info[1], info[2], info[3], "Row")
+        return [True, hist]
+    info = searchLockedCandidate(puzz.columns, puzz)
+    if info[0]:
+        hist = history("Locked Candidate", info[1], info[2], info[3], "Column")
+        return [True, hist]
     return [False]
 # Logic for locked candidates
 def searchLockedCandidate(category, puzz):
@@ -248,25 +273,27 @@ def searchLockedCandidate(category, puzz):
                 if len(updated) > 0:
                     for dex in found:
                         puzz.cells[dex[0]][dex[1]].entryButton.background_color = (1, 0, 0, 1)
-                    return True
-    return False
+                    return [True, check, updated, n]
+    return [False]
 # Checks rows, columns, and blocks for pairs of cells that share the same ONLY TWO possibilities, removes those possibilities from other related cells
 def nakedPairs(puzz):
-    info = None
-    if not searchNakedPairs(puzz.rows, puzz):
+    check = searchNakedPairs(puzz.rows, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Naked Pair", "Row"]
+        info = history("Naked Pair", check[1], check[3], check[2], "Row")
         return [True, info]
-    if not searchNakedPairs(puzz.columns, puzz):
+    check = searchNakedPairs(puzz.columns, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Naked Pair", "Column"]
+        info = history("Naked Pair", check[1], check[3], check[2], "Column")
         return [True, info]
-    if not searchNakedPairs(puzz.blocks, puzz):
+    check = searchNakedPairs(puzz.blocks, puzz)  
+    if not check[0]:
         pass
     else: 
-        info = ["Naked Pair", "Block"]
+        info = history("Naked Pair", check[1], check[3], check[2], "Block")
         return [True, info]
     return [False]
 # Goes through a list of cells, returns the first pair found.
@@ -280,10 +307,11 @@ def searchNakedPairs(category, puzz):
         if len(maybes) > 1:
             found = checkPairs(maybes)
         if found != False:
-            if updateNakedPair(found, puzz):
-                return True
+            updated = updateNakedPair(found, puzz)
+            if updated[0]:
+                return [True, found, puzz.index(found[0]).poss, updated[1]]
         maybes.clear()
-    return False
+    return [False]
 # Compares a list of cells, returns indexes if a pair is found
 def checkPairs(group):
     for i in range(len(group) - 1):
@@ -326,26 +354,28 @@ def updateNakedPair(pair, puzz):
                         puzz.cells[dex[0]][dex[1]].entryButton.background_color = (0, 0, 1, 1)
                         updated.append(dex)
     if len(updated) > 0:
-        return True
+        return [True, updated]
     else:
-        return False
+        return [False]
 # Runs through rows, columns, and blocks, returns information on the found pair
 def hiddenPairs(puzz):
-    info = None
-    if not searchHiddenPairs(puzz.rows, puzz):
+    check = searchHiddenPairs(puzz.rows, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Hidden Pair", "Row"]
+        info = history("Hidden Pair", check[1], [], check[2], "Row")
         return [True, info]
-    if not searchHiddenPairs(puzz.columns, puzz):
+    check = searchHiddenPairs(puzz.columns, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Hidden Pair", "Column"]
+        info = history("Hidden Pair", check[1], [], check[2], "Column")
         return [True, info]
-    if not searchHiddenPairs(puzz.blocks, puzz):
+    check = searchHiddenPairs(puzz.blocks, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Hidden Pair", "Block"]
+        info = history("Hidden Pair", check[1], [], check[2], "Block")
         return [True, info]
     return [False]
 # Check rows, columns, and blocks for instances where two numbers are only available in two cells.
@@ -381,38 +411,40 @@ def searchHiddenPairs(category, puzz):
                 for j in range(i + 1, len(pairs)):
                     if pairs[i][0] == pairs[j][0] and pairs[i][1] == pairs[j][1]:
                         found = (pairs[i][2], pairs[j][2])
-                        removed = 0
+                        removed = []
                         if puzz.cells[pairs[i][0][0]][pairs[i][0][1]].updateHidden(found):
-                            removed += 1
+                            removed.append(pairs[i][0])
                             puzz.cells[pairs[i][0][0]][pairs[i][0][1]].entryButton.background_color = (0, 0, 1, 1)
                         if puzz.cells[pairs[i][1][0]][pairs[i][1][1]].updateHidden(found):
-                            removed += 1
+                            removed.append(pairs[i][1])
                             puzz.cells[pairs[i][1][0]][pairs[i][1][1]].entryButton.background_color = (0, 0, 1, 1)
-                        if removed > 0:
-                            return True
+                        if len(removed) > 0:
+                            return [True, removed, found]
         # Re-initialize starting values
         maybes.clear()
         pairs.clear()
         for key in puzz.nums:
             numCount[key] = 0
-    return False
+    return [False]
 # Runs through rows, columns, and blocks, returns information on any found triple
 def nakedTriples(puzz):
-    info = None
-    if not searchNakedTriples(puzz.rows, puzz):
+    check = searchNakedTriples(puzz.rows, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Naked Triple", "Row"]
+        info = history("Naked Triple", check[1], check[2], check[3], "Row")
         return [True, info]
-    if not searchNakedTriples(puzz.columns, puzz):
+    check = searchNakedTriples(puzz.columns, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Naked Triple", "Column"]
+        info = history("Naked Triple", check[1], check[2], check[3], "Column")
         return [True, info]
-    if not searchNakedTriples(puzz.blocks, puzz):
+    check = searchNakedTriples(puzz.blocks, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Naked Triple", "Block"]
+        info = history("Naked Triple", check[1], check[2], check[3], "Block")
         return [True, info]
     return [False]
 # Checks for cells with only two or three possibilities, passes those cells to the search function
@@ -426,10 +458,11 @@ def searchNakedTriples(category, puzz):
         if len(maybes) > 2:
             found = checkTriples(maybes)
         if found != False:
-            if updateNakedTriple(found, puzz):
-                return True
+            check = updateNakedTriple(found, puzz)
+            if check[0]:
+                return [True, found, check[1], puzz.index(found[0]).poss]
         maybes.clear()
-    return False
+    return [False]
 # Compares a given list of cells and checks for instances where three cells share a pool of three possible answers
 def checkTriples(group):
     length = len(group)
@@ -489,26 +522,28 @@ def updateNakedTriple(trip, puzz):
     if len(updated) > 0:
         for cause in trip:
             puzz.cells[cause[0]][cause[1]].entryButton.backgroundColor = (1, 0, 0, 1)
-        return True
+        return [True, updated]
     else:
-        return False
+        return [False]
 # Runs through rows, columns, and blocks for instances of hidden triples, returns some data
 def hiddenTriples(puzz):
-    info = None
-    if not searchHiddenTriples(puzz.rows, puzz):
+    check = searchHiddenTriples(puzz.rows, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Hidden Triple", "Row"]
+        info = history("Hidden Triple", check[1], [], check[2], "Row")
         return [True, info]
-    if not searchHiddenTriples(puzz.columns, puzz):
+    check = searchHiddenTriples(puzz.columns, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Hidden Triple", "Column"]
+        info = history("Hidden Triple", check[1], [], check[2], "Column")
         return [True, info]
-    if not searchHiddenTriples(puzz.blocks, puzz):
+    check = searchHiddenTriples(puzz.blocks, puzz)
+    if not check[0]:
         pass
     else: 
-        info = ["Hidden Triple", "Block"]
+        info = history("Hidden Triple", check[1], [], check[2], "Block")
         return [True, info]
     return [False]
 # Checks for instances where in a given group of cells, a set of three numbers occurs only in three cells
@@ -551,28 +586,29 @@ def searchHiddenTriples(category, puzz):
                                     unique.append(index)
                         if len(unique) == 3:
                             found = [trips[i][-1], trips[j][-1], trips[k][-1]]
-                            removed = 0
+                            removed = []
                             for dex in unique:
                                 if puzz.cells[dex[0]][dex[1]].updateHidden(found):
                                     puzz.cells[dex[0]][dex[1]].entryButton.background_color = (0, 0, 1, 1)
-                                    removed += 1
+                                    removed.append(dex)
                             if removed > 0:
-                                return True
+                                return [True, removed, found]
         # Re-initialize starting values
         maybes.clear()
         trips.clear()
         for key in puzz.nums:
             numCount[key] = 0
-    return False
+    return [False]
 
 def Xwing(puzz):
-    value = ["Xwing"]
-    if searchXwing(puzz.rows, puzz, "r"):
-        value.append("Rows")
-        return [True, value]
-    if searchXwing(puzz.columns, puzz, "c"):
-        value.append("Columns")
-        return [True, value]
+    check = searchXwing(puzz.rows, puzz, "r")
+    if check[0]:
+        hist = history("X wing", check[1], check[2], check[3], "Row")
+        return [True, hist]
+    check = searchXwing(puzz.columns, puzz, "c")
+    if check[0]:
+        hist = history("X wing", check[1], check[2], check[3], "Column")
+        return [True, hist]
     return [False]
 
 def searchXwing(category, puzz, cat):
@@ -607,7 +643,7 @@ def searchXwing(category, puzz, cat):
                                     puzz.cells[row][pairs[i][1][1]].entryButton.background_color = (0, 0, 1, 1)
                                     found.append((row, pairs[i][1][1]))
                         if len(found) > 0:
-                            return True
+                            return [True, [pairs[i][0], pairs[i][1], pairs[j][0], pairs[j][1]], found, n]
         elif cat == "c":
             for i in range(len(pairs) - 1):
                 for j in range(i + 1, len(pairs)):
@@ -619,14 +655,62 @@ def searchXwing(category, puzz, cat):
                                 if n in puzz.cells[pairs[i][0][0]][col].poss:
                                     puzz.cells[pairs[i][0][0]][col].poss.remove(n)
                                     puzz.cells[pairs[i][0][0]][col].entryButton.background_color = (0, 0, 1, 1)
-                                    found.append((pairs[i][1][0], col))
+                                    found.append((pairs[i][0][0], col))
                                 if n in puzz.cells[pairs[i][1][0]][col].poss:
                                     puzz.cells[pairs[i][1][0]][col].poss.remove(n)
                                     puzz.cells[pairs[i][1][0]][col].entryButton.background_color = (0, 0, 1, 1)
                                     found.append((pairs[i][1][0], col))
                         if len(found) > 0:
-                            return True
-    return False
+                            return [True, [pairs[i][0], pairs[i][1], pairs[j][0], pairs[j][1]], found, n]
+    return [False]
 
 def Ywing(puzz):
+    maybes = []
+    removed = []
+    for rx in range(9):
+        for cx in range(9):
+            cellX = cellY = cellZ = possA = possB = possC = None
+            if len(puzz.cells[rx][cx].poss) == 2:
+                possA = puzz.index((rx, cx)).poss[0]
+                possB = puzz.index((rx, cx)).poss[1]
+                cellX = (rx, cx)
+                for ry in range(9):
+                    for cy in range(9):
+                        if puzz.index(cellX).sees((ry, cy), puzz) and len(puzz.index((ry, cy)).poss) == 2 and puzz.index(cellX).poss != puzz.index((ry, cy)).poss:
+                            if possA in puzz.index((ry, cy)).poss or possB in puzz.index((ry, cy)).poss:
+                                maybes.append(puzz.index((ry, cy)))
+                if len(maybes) > 1:
+                    Ys = checkYwing(puzz.index(cellX), maybes)
+                    if Ys != False:
+                        for found in Ys:
+                            cellY, cellZ, possC = found[0], found[1], found[2]
+                            for rz in range(9):
+                                for cz in range(9):
+                                    if puzz.index((rz, cz)).sees(cellY, puzz) and puzz.index((rz, cz)).sees(cellZ, puzz):
+                                        if possC in puzz.index((rz, cz)).poss:
+                                            puzz.cells[rz][cz].poss.remove(possC)
+                                            puzz.cells[rz][cz].entryButton.background_color = (0, 0, 1, 1)
+                                            puzz.cells[cellX[0]][cellX[1]].entryButton.background_color = (1, 1, 0, 1)
+                                            puzz.cells[cellY[0]][cellY[1]].entryButton.background_color = (1, 0, 0, 1)
+                                            puzz.cells[cellZ[0]][cellZ[1]].entryButton.background_color = (1, 0, 0, 1)
+                                            removed.append((rz, cz))
+                            if len(removed) > 0:
+                                hist = history("Y wing", [cellX, cellY, cellZ], removed, possC, "Cell")
+                                return [True, hist]
+                maybes.clear()
     return [False]
+
+def checkYwing(cellX, maybes):
+    possA, possB = cellX.poss[0], cellX.poss[1]
+    possC = None
+    Ys = []
+    for i in range(len(maybes) - 1):
+        for nY in maybes[i].poss:
+            if nY != possA and nY != possB:
+                possC = nY
+                for j in range(i + 1, len(maybes)):
+                    if possC in maybes[j].poss and maybes[i].poss != maybes[j].poss:
+                        Ys.append([maybes[i].index, maybes[j].index, possC])
+    if len(Ys) > 0:
+        return Ys
+    return False
