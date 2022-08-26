@@ -1,11 +1,18 @@
+from kivy.config import Config
+
+
+
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.app import App
 from kivy.uix.button import Button
+from kivy.uix.label import Label
 from kivy.uix.togglebutton import ToggleButton
 from kivy.metrics import dp
+from kivy.clock import Clock
 from methods import *
+
 
 sudoku_toggles = []
 selection_buttons = []
@@ -13,6 +20,8 @@ puzz = puzzle()
 step = 0
 pressedButton = ToggleButton
 solveHistory = []
+Complete = False
+SolveSpeed = .05
 
 easyExample = (6, 8, 0, 0, 0, 0, 0, 1, 7,
                 0, 0, 5, 0, 0, 3, 0, 0, 0,
@@ -125,25 +134,31 @@ class MainScreen(BoxLayout):
                         puzz.cells[i][j].entryButton.text = ""
                     position += 1
 
-class MiddleBit(RelativeLayout):
+class MiddleBit(BoxLayout):
     pass
 
 class SudokuButtons(GridLayout):
     # Creates cells and fills cell array
     def __init__(self, **kwargs):
         super(SudokuButtons, self).__init__(**kwargs)
-        size = dp(35)
         for i in range(9):
-#            g = SudokuBlock(size_hint = (None, None), size = self.minimum_size)
-#           self.add_widget(g)
+#            g = SudokuBlock(padding= [1, 1, 1, 1], size_hint_y = None, height = self.width)
+            spaceWidth = 3
+            rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
             for j in range(3):
+                columnSpacer = Label(size_hint = (None, 0), width = spaceWidth)
                 for k in range(3):
-                    b = ToggleButton(size_hint = (None, None), size = (size, size))
+                    b = ToggleButton()
                     sudoku_toggles.append(b)
                     self.add_widget(b)
                     row, col = puzz.blocks[i][(j * 3) + k][0], puzz.blocks[i][(j * 3) + k][1]
                     newCell = cell(row, col, b)
                     puzz.cells[row][col] = newCell
+                self.add_widget(columnSpacer)
+            if (i + 1) % 3 == 0:
+                for a in range(12):
+                    rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
+                    self.add_widget(rowSpacer)
 
 class SudokuBlock(GridLayout):
     def __init__(self, **kwargs):
@@ -159,24 +174,29 @@ class EntryLayout(RelativeLayout):
     # Second and on generates new hints
     def run_solver(self, button):
         global step
-        if button.text == "Get hint":
+        if button.text == "Lock in puzzle":
             for i in range(9):
                 for j in range(9):
                     if puzz.cells[i][j].entryButton.text != "":
                         puzz.cells[i][j].value = puzz.cells[i][j].entryButton.text
                         puzz.cells[i][j].poss.clear()
                         puzz.cells[i][j].updateRelated(puzz)
-            button.text = "Next Hint"
+            button.text = "Get Hint"
         else:
             move = findNextMove(puzz)
             if move[0]:
+                solveHistory.append(move[1].record)
                 print(move[1].record)
+                self.ids.possDisplay.text = f"Found {solveHistory[step]['method']} at:\n {solveHistory[step]['cause']}"
+                step += 1
+
     
     def reset(self, button):
         global puzz
         puzz = puzzle()
         count = 81
-        self.ids.startButton.text = "Get hint"
+        self.ids.startButton.text = "Lock in puzzle"
+        
         for i in range(9):
             for j in range(9):
                 puzz.cells[i][j] = cell(i, j, sudoku_toggles[count])
@@ -184,6 +204,22 @@ class EntryLayout(RelativeLayout):
                 puzz.cells[i][j].entryButton.background_color = (1, 1, 1, 1)
                 puzz.cells[i][j].entryButton.state = "normal"
                 count += 1
+
+    def solveAll(self, button):
+            Clock.schedule_interval(self.next, SolveSpeed)
+    
+    def next(self, dt):
+        global step
+        global Complete
+        move = findNextMove(puzz)
+        if move[0]:
+            step += 1
+            solveHistory.append(move[1])
+            return True
+        else:
+            Complete = True
+            return False
+            
 
 
 class OptionGrid(GridLayout):
