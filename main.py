@@ -79,6 +79,7 @@ class MainScreen(BoxLayout):
     def __init__(self, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
         self.Message = "Enter your puzzle"
+        self.gameState = "Entry"
     # Makes sure only one cell is selected at a time
     def switch_active(self, togglebutton):
         global pressedButton
@@ -98,11 +99,10 @@ class MainScreen(BoxLayout):
             for number in selection_buttons:
                 number.disabled = True
 
-
     # Commits filled in puzzle to cell array
     def fill_example(self, button):
         position = 0
-        if button.text == "Easy example":
+        if button.text == "E":
             for i in range(9):
                 for j in range(9):
                     if easyExample[position] > 0:
@@ -110,7 +110,7 @@ class MainScreen(BoxLayout):
                     else:
                         puzz.cells[i][j].entryButton.text = ""
                     position += 1
-        elif button.text == "Medium example":
+        elif button.text == "M":
             for i in range(9):
                 for j in range(9):
                     if mediumExample[position] > 0:
@@ -118,7 +118,7 @@ class MainScreen(BoxLayout):
                     else:
                         puzz.cells[i][j].entryButton.text = ""
                     position += 1
-        elif button.text == "Hard example":
+        elif button.text == "H":
             for i in range(9):
                 for j in range(9):
                     if hardExample[position] > 0:
@@ -126,7 +126,7 @@ class MainScreen(BoxLayout):
                     else:
                         puzz.cells[i][j].entryButton.text = ""
                     position += 1
-        elif button.text == "Expert example":
+        elif button.text == "X":
             for i in range(9):
                 for j in range(9):
                     if expertExample[position] > 0:
@@ -135,44 +135,6 @@ class MainScreen(BoxLayout):
                         puzz.cells[i][j].entryButton.text = ""
                     position += 1
 
-class MiddleBit(BoxLayout):
-    pass
-
-class SudokuButtons(GridLayout):
-    # Creates cells and fills cell array
-    def __init__(self, **kwargs):
-        super(SudokuButtons, self).__init__(**kwargs)
-        for i in range(9):
-#            g = SudokuBlock(padding= [1, 1, 1, 1], size_hint_y = None, height = self.width)
-            spaceWidth = 3
-            rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
-            for j in range(3):
-                columnSpacer = Label(size_hint = (None, 0), width = spaceWidth)
-                for k in range(3):
-                    b = ToggleButton()
-                    sudoku_toggles.append(b)
-                    self.add_widget(b)
-                    row, col = puzz.blocks[i][(j * 3) + k][0], puzz.blocks[i][(j * 3) + k][1]
-                    newCell = cell(row, col, b)
-                    puzz.cells[row][col] = newCell
-                self.add_widget(columnSpacer)
-            if (i + 1) % 3 == 0:
-                for a in range(12):
-                    rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
-                    self.add_widget(rowSpacer)
-
-class SudokuBlock(GridLayout):
-    def __init__(self, **kwargs):
-        super(SudokuBlock, self).__init__(**kwargs)
-        self.cols = 3
-
-
-class EntryLayout(RelativeLayout):
-    def __init__(self,**kwargs):
-        super(EntryLayout,self).__init__(**kwargs)
-        pass
-    # First press updates cells possible values based on entered info.
-    # Second and on generates new hints
     def run_solver(self, button):
         global step
         if button.text == "Lock in puzzle":
@@ -183,15 +145,17 @@ class EntryLayout(RelativeLayout):
                         puzz.cells[i][j].poss.clear()
                         puzz.cells[i][j].updateRelated(puzz)
             button.text = "Get Hint"
+            self.gameState = "Hints"
+            self.ids.entryGrid.size_hint_y = 0
+            self.ids.possDisplay.size_hint_y = 1
         else:
             move = findNextMove(puzz)
             if move[0]:
                 solveHistory.append(move[1].record)
                 print(move[1].record)
-                self.ids.possDisplay.text = f"Found {solveHistory[step]['method']} at:\n {solveHistory[step]['cause']}"
+                self.ids.possDisplay.text = f"Found {solveHistory[step]['method']} at: {solveHistory[step]['cause']}"
                 step += 1
-
-    
+  
     def reset(self, button):
         global puzz
         puzz = puzzle()
@@ -220,6 +184,38 @@ class EntryLayout(RelativeLayout):
         else:
             Complete = True
             return False
+
+
+class SudokuButtons(GridLayout):
+    # Creates cells and fills cell array
+    def __init__(self, **kwargs):
+        super(SudokuButtons, self).__init__(**kwargs)
+        for i in range(9):
+            spaceWidth = 3
+            rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
+            for j in range(3):
+                columnSpacer = Label(size_hint = (None, 0), width = spaceWidth)
+                for k in range(3):
+                    b = ToggleButton()
+                    sudoku_toggles.append(b)
+                    self.add_widget(b)
+                    row, col = puzz.blocks[i][(j * 3) + k][0], puzz.blocks[i][(j * 3) + k][1]
+                    newCell = cell(row, col, b)
+                    puzz.cells[row][col] = newCell
+                self.add_widget(columnSpacer)
+            if (i + 1) % 3 == 0:
+                for a in range(12):
+                    rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
+                    self.add_widget(rowSpacer)
+    
+    
+class EntryLayout(RelativeLayout):
+    def __init__(self,**kwargs):
+        super(EntryLayout,self).__init__(**kwargs)
+        pass
+    # First press updates cells possible values based on entered info.
+    # Second and on generates new hints
+
             
 
 
@@ -228,11 +224,10 @@ class OptionGrid(GridLayout):
     def __init__(self, **kwargs):
         super(OptionGrid, self).__init__(**kwargs)
         for i in range(0, 10):
-            size = dp(35)
             title = ""
             if i > 0:
                 title = str(i)
-            b = Button(text=title, size_hint=(None, None), size=(size, size), disabled = True, on_press = self.num_entry)
+            b = Button(text=title, disabled = True, on_press = self.num_entry)
             selection_buttons.append(b)
             self.add_widget(b)
     # Enters writes option to selected cell

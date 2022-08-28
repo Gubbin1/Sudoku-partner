@@ -1,3 +1,4 @@
+#:set padsize .1
 <MainScreen>:
     canvas.before:
         Rectangle:
@@ -6,75 +7,68 @@
     orientation: "vertical"
     Label:
         id: cellData
-        text: "Click a cell for detailed info"
-        size_hint: (1, .1)
-    MiddleBit:
-        ExampleDokus:
-            size_hint: (.2, .2)
-            orientation: "vertical"
-            Button:
-                text: "Easy example"
-                on_press: app.root.fill_example(self)
-            Button:
-                text: "Medium example"
-                on_press: app.root.fill_example(self)
-            Button:
-                text: "Hard example"
-                on_press: app.root.fill_example(self)
-            Button:
-                text: "Expert example"
-                on_press: app.root.fill_example(self)
-        SudokuButtons:
-            padding: 2, 2, 2, 2
-            cols: 12
-
+        size_hint_y: .1
+        text: "Cell Info"
+    BoxLayout:
         Label:
-            size_hint: (.2, 1)
+            text: "Pad"
+            size_hint_x: padsize
+        RelativeLayout:
+            SudokuButtons
+                padding: 2, 2, 2, 2
+                cols: 12
+                pos_hint: {'top': 1}
+                size_hint_y: None if (root.width * 1.1) < root.height else 1
+                size_hint_x: 1 if (root.width * 1.1) < root.height else None
+                height: self.width 
+                width: self.height
+                text: "Puzzle area" 
+        ExampleDokus:
+            orientation: "vertical"
+            size_hint_x: padsize
+            Button:
+                text: "E"
+                on_press: app.root.fill_example(self)
+            Button:
+                text: "M"
+                on_press: app.root.fill_example(self)
+            Button:
+                text: "H"
+                on_press: app.root.fill_example(self)
+            Button:
+                text: "X"
+                on_press: app.root.fill_example(self)
     EntryLayout:
-        size_hint: (1, .1)
-    
+        size_hint_y: .25
+        Button:
+            size_hint_x: .25
+            text: "More info"
+        OptionGrid:
+            id: entryGrid
+            cols: 5
+            size_hint_x: .5
+            pos_hint: {'right': .75}
+        Label:
+            id: possDisplay
+            size_hint_x: .5
+            size_hint_y: 0
+            pos_hint: {'right': .75}
+        BoxLayout:
+            size_hint_x: .25
+            pos_hint: {'right': 1}
+            orientation: "vertical"
+            Button: 
+                id: startButton
+                text: "Lock in puzzle"
+                on_press: root.run_solver(self)
+            Button: 
+                text: "Solve puzzle"
+                on_press: root.solveAll(self)
+            Button:
+                text: "Reset"
+                on_press: root.reset(self)
 
 <ExampleDokus@BoxLayout>
 
-
-<OptionGrid>:
-    cols: 5
-    pos_hint: {'center_x': .5}
-    size_hint: (None, None)
-    size: self.minimum_size
-
 <ToggleButton>:
     on_press: app.root.switch_active(self)
-    size_hint_y: None
-    height: self.width
-
-
-<EntryLayout>:
-    Label:
-        id: possDisplay
-        text: "Select a cell."
-        pos_hint: {'x': .05, 'y':.05}
-        size_hint: (None, None)
-        size: (dp(80), dp(40))
-    OptionGrid:
-        pos_y: self.height / 2
-    BoxLayout:
-        orientation: "vertical"
-        pos_hint: {'x': .85}
-        Button:
-            id: startButton
-            text: "Lock in puzzle"
-            size_hint: (None, None)
-            size: (dp(80), dp(40))
-            on_press: root.run_solver(self)
-        Button:
-            id: reset
-            text: "Reset"
-            size_hint: (None, None)
-            size: (dp(80), dp(40))
-            on_press: root.reset(self)
-        Button:
-            text: "Solve puzzle"
-            size_hint: (None, None)
-            size: (dp(80), dp(40))
-            on_press: root.solveAll(self)

@@ -67,14 +67,16 @@ class cell():
         self.entryButton.background_color = "white"
     # Clears out all but the values in a given list from possible
     def updateHidden(self, found):
-        removed = []
+        takeOut = []
         for n in self.poss:
             if n in found:
                 pass
             else:
-                self.poss.remove(n)
-                removed.append(n)
-        if len(removed) > 0:
+                takeOut.append(n)
+        if len(takeOut) > 0:
+            for n in takeOut:
+                if n in self.poss:
+                    self.poss.remove(n)
             return True
         return False
         
