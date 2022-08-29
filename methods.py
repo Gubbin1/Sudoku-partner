@@ -2,7 +2,7 @@ from unittest.mock import NonCallableMagicMock
 
 
 def findNextMove(puzz):
-    fl = [fillGreen, nakedSingle, hiddenSingle, nakedPairs, lockedCandidate, pointingTuple, hiddenPairs, nakedTriples, hiddenTriples, Xwing, Ywing]
+    fl = [fillGreen, nakedSingle, hiddenSingle, nakedPairs, lockedCandidate, pointingTuple, hiddenPairs, nakedTriples, hiddenTriples, Xwing, Ywing, simpleColoring]
     check = None
     # Moves through methods in order of complexity, if progress is made return with the information.
     for f in fl:
@@ -91,6 +91,7 @@ class cell():
             return True
         return False
 # Holds all the necessary information for the entire puzzle
+
 class puzzle():
     def __init__(self):
         self.cells = [[None for i in range(9)] for j in range(9)]
@@ -117,6 +118,7 @@ class puzzle():
 
     def index(self, coordinates):
         return self.cells[coordinates[0]][coordinates[1]]
+# Creates an object that holds all the information of a sudoku move
 
 class history():
     # A dictionary that keeps a record of each move
@@ -715,4 +717,73 @@ def checkYwing(cellX, maybes):
                         Ys.append([maybes[i].index, maybes[j].index, possC])
     if len(Ys) > 0:
         return Ys
+    return False
+# TODO
+def simpleColoring(puzz):
+    for n in puzz.nums:
+        chains = findChains(n, puzz)
+        if chains != False:
+            pass
+        
+        # chain by chain, "color" cells two alternating colors
+        # if there are any cells with both colors, eliminate their possibility.
+        # if there are any cells outside of the chain that can see a cell with both colors, eliminate their possibility.
+    return [False]
+
+def findChains(n, puzz):
+    # by number, search for chains of strong connections
+    chains = []
+    colors = ("r", "b")
+    chain = 0
+    # A dictionary of dictionaries using cell indexes as keys to the dictionaries storing the cells chain data.
+    cellInfo = {}
+    # Populates cellInfo dictionary
+    for i in range(9):
+        for j in range(9):
+            cellInfo[(i, j)] = {'chained': False, 'color': [], 'chain': 0}
+    
+    for group in puzz.rows:
+        for dex in group:
+            if n in puzz.index(dex).poss:
+                if not cellInfo[dex]['chained']:
+                    dependants = findDependants(dex, n, puzz)
+                    if dependants != False:
+                        pass
+                        # Make a while loop that continues to find the dependants of the dependants and makes a list of all of them
+                        # color the first cell in the list "r", then loop through all the cells in the list, if they see each other mark them as the alternate color.
+    return False
+
+def findDependants(dex, n, puzz):
+    DList = []
+    count = 0
+    holder = []
+    # Checks related row, column, and block for instances where there is only one other possible cell with the same value
+    for i in range(9):
+        if i != dex[0]:
+            if n in puzz.cells[i][dex[1]]:
+                count += 1
+                holder.append((i, dex[1]))
+    if count == 1:
+        DList.append(holder[0])
+    count = 0
+    holder.clear()
+    for i in range(9):
+        if i != dex[1]:
+            if n in puzz.cells[dex[0]][i]:
+                count += 1
+                holder.append((dex[0], i))
+    if count == 1:
+        DList.append(holder[0])
+    count = 0
+    holder.clear()
+    for blockMate in puzz.blockDic[puzz.index(dex).block]:
+        if blockMate != dex:
+            if n in puzz.cells[dex[0]][i]:
+                count += 1
+                if blockMate[0] != dex[0] and blockMate[1] != dex[1]:
+                    holder.append((dex[0], i))
+    if count == 1:
+        DList.append(holder[0])
+    if len(DList) > 0:
+        return DList
     return False
