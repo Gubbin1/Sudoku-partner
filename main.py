@@ -89,7 +89,7 @@ class MainScreen(BoxLayout):
                 if tb == puzz.cells[i][j].entryButton:
                     cellCount = 0
                     cellCount += 1
-                    self.ids.cellData.text = f"Cell possibilities: \n {puzz.cells[i][j].poss}"
+                    self.ids.cellData.text = f"Cell possibilities: \n {puzz.cells[i][j].poss}, Block: {puzz.cells[i][j].block}, Index: {puzz.cells[i][j].index}"
                 else:
                     puzz.cells[i][j].entryButton.state = "normal"
         if tb.state == "down":
@@ -190,8 +190,8 @@ class SudokuButtons(GridLayout):
     # Creates cells and fills cell array
     def __init__(self, **kwargs):
         super(SudokuButtons, self).__init__(**kwargs)
+        spaceWidth = 3
         for i in range(9):
-            spaceWidth = 3
             rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
             for j in range(3):
                 columnSpacer = Label(size_hint = (None, 0), width = spaceWidth)
@@ -199,14 +199,17 @@ class SudokuButtons(GridLayout):
                     b = ToggleButton()
                     sudoku_toggles.append(b)
                     self.add_widget(b)
-                    row, col = puzz.blocks[i][(j * 3) + k][0], puzz.blocks[i][(j * 3) + k][1]
-                    newCell = cell(row, col, b)
-                    puzz.cells[row][col] = newCell
                 self.add_widget(columnSpacer)
             if (i + 1) % 3 == 0:
                 for a in range(12):
                     rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
                     self.add_widget(rowSpacer)
+        count = 0
+        for i in range(9):
+            for j in range(9):
+                newCell = cell(i, j, sudoku_toggles[count])
+                puzz.cells[i][j] = newCell
+                count += 1
     
     
 class EntryLayout(RelativeLayout):

@@ -43,21 +43,18 @@ class cell():
     def updateRelated(self, puzz):
         thisRow = self.row
         thisCol = self.column
+        thisBlock = self.block
+        value = self.value
         for i in range(9):
-            if i == thisRow:
-                pass
-            elif self.value in puzz.cells[i][self.column].poss:
-                puzz.cells[i][self.column].poss.remove(self.value)
-
-            if i == thisCol:
-                pass
-            elif self.value in puzz.cells[self.row][i].poss:
-                puzz.cells[self.row][i].poss.remove(self.value)
-
-            if thisRow == puzz.blockDic[self.block][i][0] and puzz.blockDic[self.block][i][1] == thisCol:
-                pass
-            elif self.value in puzz.cells[puzz.blockDic[self.block][i][0]][puzz.blockDic[self.block][i][1]].poss:
-                puzz.cells[puzz.blockDic[self.block][i][0]][puzz.blockDic[self.block][i][1]].poss.remove(self.value)
+            # Clears value from possibles from the related row
+            if value in puzz.cells[i][thisCol].poss:
+                puzz.cells[i][thisCol].poss.remove(value)
+            # Clears value from possibles from the related column
+            if value in puzz.cells[thisRow][i].poss:
+                puzz.cells[thisRow][i].poss.remove(value)
+            # Clears value from possibles from the related block
+            if self.value in puzz.cells[puzz.blockDic[thisBlock][i][0]][puzz.blockDic[thisBlock][i][1]].poss:
+                puzz.cells[puzz.blockDic[thisBlock][i][0]][puzz.blockDic[thisBlock][i][1]].poss.remove(value)
     # When there is only one possibility, fill in value with that possibility. If the answer has been found by other means, display the answer and clear out the possibilities
     def fill(self):
         if self.value == None and len(self.poss) == 1:
@@ -718,72 +715,140 @@ def checkYwing(cellX, maybes):
     if len(Ys) > 0:
         return Ys
     return False
-# TODO
+
 def simpleColoring(puzz):
     for n in puzz.nums:
         chains = findChains(n, puzz)
         if chains != False:
-            pass
+            info = history("Simple Coloring", chains[1], chains[0], chains[2], chains[3])
+            return [True, info]
         
-        # chain by chain, "color" cells two alternating colors
-        # if there are any cells with both colors, eliminate their possibility.
-        # if there are any cells outside of the chain that can see a cell with both colors, eliminate their possibility.
     return [False]
 
 def findChains(n, puzz):
     # by number, search for chains of strong connections
     chains = []
     colors = ("r", "b")
-    chain = 0
+    chainCount = 0
     # A dictionary of dictionaries using cell indexes as keys to the dictionaries storing the cells chain data.
     cellInfo = {}
     # Populates cellInfo dictionary
     for i in range(9):
         for j in range(9):
-            cellInfo[(i, j)] = {'chained': False, 'color': [], 'chain': 0}
+            cellInfo[(i, j)] = {'chained': False, 'color': None, 'chain': 0}
     
     for group in puzz.rows:
         for dex in group:
             if n in puzz.index(dex).poss:
                 if not cellInfo[dex]['chained']:
-                    dependants = findDependants(dex, n, puzz)
-                    if dependants != False:
-                        pass
-                        # Make a while loop that continues to find the dependants of the dependants and makes a list of all of them
-                        # color the first cell in the list "r", then loop through all the cells in the list, if they see each other mark them as the alternate color.
+                    oneChain = []
+                    chainHolder = findDependants(dex, n, puzz, oneChain)
+                    if chainHolder != False:
+                        if len(chainHolder) > 2:
+                            for link in chainHolder:
+                                cellInfo[link]['chained'] = True
+                            chains.append(chainHolder)
+    # color the first cell in the list "r", then loop through all the cells in the list, if they see each other mark them as the alternate color.
+    if len(chains) == 0:
+        return False
+    for linked in chains:
+        chainCount += 1
+        cellInfo[linked[0]]['color'] = 'r'
+        cellInfo[linked[0]]['chain'] = chainCount
+        for linkA in range(0, len(linked) - 1):
+            for linkB in range(linkA + 1, len(linked)):
+                if puzz.index(linked[linkA]).sees(linked[linkB], puzz):
+                    if cellInfo[linked[linkA]]['color'] == 'r' and cellInfo[linked[linkB]]['chain'] == 0:
+                        cellInfo[linked[linkB]]['color'] = 'b'
+                        cellInfo[linked[linkB]]['chain'] = chainCount
+                    elif cellInfo[linked[linkA]]['color'] == 'b' and cellInfo[linked[linkB]]['chain'] == 0:
+                        cellInfo[linked[linkB]]['color'] = 'r'
+                        cellInfo[linked[linkB]]['chain'] = chainCount
+                        # POTENTIAL PROBLEM: if the cells in the list are not arranged in the order of the chain, this will iterate to cells that have no color as linkA, breaking the coloring chain.
+                        # However, we make the chain recursively so it should be in order.
+    # First make sure it's a valid chain
+    """
+    for chain in chains:
+        invalid = []
+        for cellN in chain:
+            colors = []
+            for checkcellN in chain:
+                if puzz.index(cellN).sees(checkcellN, puzz):
+                    colors.append(cellInfo[checkcellN]['color'])
+            for color in colors:
+                if color == cellInfo[cellN]['color']:
+                    for wrong in chain:
+                        if cellInfo[wrong]['color'] == color:
+                            invalid.append(wrong)
+                    for guy in invalid:
+                        puzz.cells[guy[0]][guy[1]].poss.remove(n)
+                    return [invalid, chain, n, "Invalid chain"]
+                    """ # Correctly identifies invalid chains, incorrectly removes possibilities
+
+    for chain in chains:
+        found = []
+        for group in puzz.rows:
+            for cell in group:
+                colors = []
+                if n in puzz.index(cell).poss and cell not in chain:
+                    for checkCell in chain:
+                        if puzz.index(cell).sees(checkCell, puzz):
+                            colors.append(cellInfo[checkCell]['color'])
+                    if len(colors) > 1:
+                        unique = []
+                        for color in colors:
+                            if color not in unique:
+                                unique.append(color)
+                        if len(unique) > 1:
+                            found.append(cell)
+        if len(found) > 0:
+            for badDex in found:
+                puzz.cells[badDex[0]][badDex[1]].poss.remove(n)
+            return [found, chain, n, "Multi color"]
     return False
 
-def findDependants(dex, n, puzz):
-    DList = []
+def findDependants(dex, n, puzz, lst):
+    Dlist = lst
     count = 0
     holder = []
+    tmp = []
+    # base case
+    if dex in Dlist:
+        return
+    else:
+        Dlist.append(dex)
     # Checks related row, column, and block for instances where there is only one other possible cell with the same value
     for i in range(9):
         if i != dex[0]:
-            if n in puzz.cells[i][dex[1]]:
+            if n in puzz.cells[i][dex[1]].poss:
                 count += 1
-                holder.append((i, dex[1]))
+                tmp.append((i, dex[1]))
     if count == 1:
-        DList.append(holder[0])
+        holder.append(tmp[0])
+    tmp.clear()
     count = 0
-    holder.clear()
     for i in range(9):
         if i != dex[1]:
-            if n in puzz.cells[dex[0]][i]:
+            if n in puzz.cells[dex[0]][i].poss:
                 count += 1
-                holder.append((dex[0], i))
+                tmp.append((dex[0], i))
     if count == 1:
-        DList.append(holder[0])
+        holder.append(tmp[0])
+    tmp.clear()
     count = 0
-    holder.clear()
     for blockMate in puzz.blockDic[puzz.index(dex).block]:
         if blockMate != dex:
-            if n in puzz.cells[dex[0]][i]:
+            if n in puzz.index(blockMate).poss:
                 count += 1
                 if blockMate[0] != dex[0] and blockMate[1] != dex[1]:
-                    holder.append((dex[0], i))
-    if count == 1:
-        DList.append(holder[0])
-    if len(DList) > 0:
-        return DList
-    return False
+                    tmp.append((blockMate))
+    if count == 1 and len(tmp) == 1:
+        holder.append(tmp[0])
+    tmp.clear()
+    count = 0
+    if len(holder) == 0:
+        return False
+    for dependant in holder:
+        if dependant not in Dlist:
+            findDependants(dependant, n, puzz, Dlist)
+    return Dlist
