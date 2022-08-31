@@ -24,6 +24,7 @@ solveHistory = []
 Complete = False
 SolveSpeed = .05
 
+
 easyExample = (6, 8, 0, 0, 0, 0, 0, 1, 7,
                 0, 0, 5, 0, 0, 3, 0, 0, 0,
                 0, 0, 0, 0, 7, 0, 6, 5, 0,

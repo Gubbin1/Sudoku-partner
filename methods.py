@@ -1,3 +1,4 @@
+from re import L
 from unittest.mock import NonCallableMagicMock
 
 
@@ -76,7 +77,7 @@ class cell():
                     self.poss.remove(n)
             return True
         return False
-        
+    # Returns true if a cell can "see" an index
     def sees(self, index, puzz):
         if self.index == index:
             return False
@@ -87,6 +88,45 @@ class cell():
         elif index in puzz.blockDic[self.block]:
             return True
         return False
+
+    def dependsOn(self, index, n, puzz):
+        if self.index == index or n not in self.poss:
+            return False
+        if self.index[0] != index[0] and self.index[1] != index[1] and self.block != puzz.index(index).block:
+            return False
+        count = 0
+        checkCell = None
+        # Checks related row, column, and block for instances where "index" is the only other location with "n" as a possibility
+        for i in range(9):
+            if i != index[0]:
+                if n in puzz.cells[i][index[1]].poss:
+                    count += 1
+                    checkCell = (i, index[1])
+        if count == 1 and self.index == checkCell:
+            return True
+        count = 0
+        checkCell = None
+        for i in range(9):
+            if i != index[1]:
+                if n in puzz.cells[index[0]][i].poss:
+                    count += 1
+                    checkCell = (index[0], i)
+        if count == 1 and self.index == checkCell:
+            return True
+        count = 0
+        for blockMate in puzz.blockDic[puzz.index(index).block]:
+            if blockMate != index:
+                if n in puzz.index(blockMate).poss:
+                    count += 1
+                    if blockMate[0] != index[0] and blockMate[1] != index[1]:
+                        checkCell = blockMate
+        if count == 1 and checkCell == self.index:
+            return True
+        return False
+        
+
+
+
 # Holds all the necessary information for the entire puzzle
 
 class puzzle():
@@ -757,7 +797,7 @@ def findChains(n, puzz):
         cellInfo[linked[0]]['chain'] = chainCount
         for linkA in range(0, len(linked) - 1):
             for linkB in range(linkA + 1, len(linked)):
-                if puzz.index(linked[linkA]).sees(linked[linkB], puzz):
+                if puzz.index(linked[linkA]).dependsOn(linked[linkB], n, puzz):
                     if cellInfo[linked[linkA]]['color'] == 'r' and cellInfo[linked[linkB]]['chain'] == 0:
                         cellInfo[linked[linkB]]['color'] = 'b'
                         cellInfo[linked[linkB]]['chain'] = chainCount
@@ -767,23 +807,24 @@ def findChains(n, puzz):
                         # POTENTIAL PROBLEM: if the cells in the list are not arranged in the order of the chain, this will iterate to cells that have no color as linkA, breaking the coloring chain.
                         # However, we make the chain recursively so it should be in order.
     # First make sure it's a valid chain
-    """
+
     for chain in chains:
         invalid = []
         for cellN in chain:
-            colors = []
+            color = None
             for checkcellN in chain:
                 if puzz.index(cellN).sees(checkcellN, puzz):
-                    colors.append(cellInfo[checkcellN]['color'])
-            for color in colors:
-                if color == cellInfo[cellN]['color']:
-                    for wrong in chain:
-                        if cellInfo[wrong]['color'] == color:
-                            invalid.append(wrong)
-                    for guy in invalid:
-                        puzz.cells[guy[0]][guy[1]].poss.remove(n)
-                    return [invalid, chain, n, "Invalid chain"]
-                    """ # Correctly identifies invalid chains, incorrectly removes possibilities
+                    if cellInfo[checkcellN]['color'] == cellInfo[cellN]['color']:
+                        color = cellInfo[cellN]['color']
+                        for bad in chain:
+                            if cellInfo[bad]['color'] == color:
+                                invalid.append(bad)
+                        if len(invalid) > 0:
+                            for badboy in invalid:
+                                if n in puzz.index(badboy).poss:
+                                    puzz.index(badboy).poss.remove(n)
+                            return [invalid, chain, n, "Invalid chain"]
+                   # Correctly identifies invalid chains, incorrectly removes possibilities 
 
     for chain in chains:
         found = []
