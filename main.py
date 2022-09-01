@@ -24,7 +24,6 @@ solveHistory = []
 Complete = False
 SolveSpeed = .05
 
-
 easyExample = (6, 8, 0, 0, 0, 0, 0, 1, 7,
                 0, 0, 5, 0, 0, 3, 0, 0, 0,
                 0, 0, 0, 0, 7, 0, 6, 5, 0,
@@ -81,6 +80,7 @@ class MainScreen(BoxLayout):
         super(MainScreen, self).__init__(**kwargs)
         self.Message = "Enter your puzzle"
         self.gameState = "Entry"
+        self.ids.historySlider.bind(value = self.displayHistory)
     # Makes sure only one cell is selected at a time
     def switch_active(self, togglebutton):
         global pressedButton
@@ -143,31 +143,72 @@ class MainScreen(BoxLayout):
                 for j in range(9):
                     if puzz.cells[i][j].entryButton.text != "":
                         puzz.cells[i][j].value = puzz.cells[i][j].entryButton.text
+                        puzz.cells[i][j].entryButton.color = [0, 0, 0, 1]
                         puzz.cells[i][j].poss.clear()
                         puzz.cells[i][j].updateRelated(puzz)
             button.text = "Get Hint"
             self.gameState = "Hints"
-            self.ids.entryGrid.size_hint_y = 0
-            self.ids.possDisplay.size_hint_y = 1
+            self.ids.entryGrid.pos_hint = {'right': 0}
+            self.ids.possDisplay.pos_hint = {'right': .75}
         else:
             move = findNextMove(puzz)
             if move[0]:
                 solveHistory.append(move[1].record)
                 print(move[1].record)
-                self.ids.possDisplay.text = f"Found {solveHistory[step]['method']} at: {solveHistory[step]['cause']}"
-                step += 1
-  
+                self.colorCells(move[1].record, puzz)
+                self.ids.historySlider.max = step
+                self.ids.historySlider.value = step
+                step += 1    
+
+    def displayHistory(self, slider, value):
+        self.ids.historyDisplay.text = f"Found {solveHistory[int(value)]['method']} at: {solveHistory[int(value)]['cause']}"
+        if self.ids.historySlider.value < step:
+            #erase filled cells up to the point of the value
+            pass
+        self.colorCells(solveHistory[int(value)], puzz)
+
+    def colorCells(self, hist, puzz):
+        move = hist['method']
+        loc = hist['cause']
+        if move == "Fill In":
+            puzz.colorOnly([loc], [1, 1, 1, 1])
+        elif move == "Naked Single":
+            puzz.colorOnly([loc], [0, 1, 0, 1])
+        elif move == "Hidden Single":
+            puzz.colorOnly([loc], [0, 1, 0, 1])
+        elif move == "Pointer":
+            pass
+        elif move == "Locked Candidate":
+            pass
+        elif move == "Naked Pair":
+            pass
+        elif move == "Hidden Pair":
+            puzz.colorOnly(loc, [0, 0, 1, 1])
+        elif move == "Naked Triple":
+            pass
+        elif move == "Hidden Triple":
+            puzz.colorOnly(loc, [0, 0, 1, 1])
+        elif move == "X wing":
+            pass
+        elif move == "Y wing":
+            pass
+        elif move == "Simple Coloring":
+            pass
+        
+
     def reset(self, button):
         global puzz
         puzz = puzzle()
         count = 0
         self.ids.startButton.text = "Lock in puzzle"
-        
+        self.ids.entryGrid.pos_hint = {'right': .75}
+        self.ids.possDisplay.pos_hint = {'right': 0}
         for i in range(9):
             for j in range(9):
                 puzz.cells[i][j] = cell(i, j, sudoku_toggles[count])
                 puzz.cells[i][j].entryButton.text = ""
                 puzz.cells[i][j].entryButton.background_color = (1, 1, 1, 1)
+                puzz.cells[i][j].entryButton.color = [1, 1, 1, 1]
                 puzz.cells[i][j].entryButton.state = "normal"
                 count += 1
 
@@ -179,8 +220,11 @@ class MainScreen(BoxLayout):
         global Complete
         move = findNextMove(puzz)
         if move[0]:
+            solveHistory.append(move[1].record)
+            self.ids.historySlider.max = step
+            self.ids.historySlider.value = step
+            self.ids.historyDisplay.text = f"Found {solveHistory[step]['method']} at: {solveHistory[step]['cause']}"
             step += 1
-            solveHistory.append(move[1])
             return True
         else:
             Complete = True

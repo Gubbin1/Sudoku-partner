@@ -62,7 +62,6 @@ class cell():
             self.value = self.poss[0]
         self.poss.clear()
         self.entryButton.text = self.value
-        self.entryButton.background_color = "white"
     # Clears out all but the values in a given list from possible
     def updateHidden(self, found):
         takeOut = []
@@ -124,11 +123,7 @@ class cell():
             return True
         return False
         
-
-
-
 # Holds all the necessary information for the entire puzzle
-
 class puzzle():
     def __init__(self):
         self.cells = [[None for i in range(9)] for j in range(9)]
@@ -155,8 +150,16 @@ class puzzle():
 
     def index(self, coordinates):
         return self.cells[coordinates[0]][coordinates[1]]
-# Creates an object that holds all the information of a sudoku move
+    
+    def colorOnly(self, coordinates, color):
+        for group in self.cells:
+            for one in group:
+                if one.index not in coordinates:
+                    one.entryButton.background_color = [1, 1, 1, 1]
+                else:
+                    one.entryButton.background_color = color
 
+# Creates an object that holds all the information of a sudoku move
 class history():
     # A dictionary that keeps a record of each move
     def __init__(self, method, cause, effect, num, category):
@@ -170,9 +173,8 @@ def fillGreen(puzz):
             if puzz.cells[i][j].entryButton.background_color == [0, 1, 0, 1]:
                 puzz.cells[i][j].fill()
                 puzz.cells[i][j].updateRelated(puzz)
-                info = history("Fill In", [(i, j)], [], puzz.cells[i][j].value, "Cell")
+                info = history("Fill In", (i, j), [], puzz.cells[i][j].value, "Cell")
                 return [True, info]
-            puzz.cells[i][j].entryButton.background_color = [1, 1, 1, 1]
     return [False]
 # Looks for cells with only one possibility and colors the first one found green
 def nakedSingle(puzz):
@@ -180,8 +182,7 @@ def nakedSingle(puzz):
     for i in range(9):
         for j in range(9):
             if len(puzz.cells[i][j].poss) == 1:
-                puzz.cells[i][j].entryButton.background_color = (0, 1, 0, 1)
-                info = history("Naked Single", [(i, j)], [], puzz.cells[i][j].poss[0], "Cell")
+                info = history("Naked Single", (i, j), [], puzz.cells[i][j].poss[0], "Cell")
                 return [True, info]
     return [False]
 # Checks rows, columns, and blocks for cells where there is only one possible place for a given value
@@ -219,7 +220,6 @@ def searchHiddenSingles(category, puzz):
                     count += 1
                     found = group[i]
             if count == 1:
-                puzz.cells[found[0]][found[1]].entryButton.background_color = (0, 1, 0, 1)
                 puzz.cells[found[0]][found[1]].value = n
                 return [True, found, n]
     return [False]
@@ -455,10 +455,8 @@ def searchHiddenPairs(category, puzz):
                         removed = []
                         if puzz.cells[pairs[i][0][0]][pairs[i][0][1]].updateHidden(found):
                             removed.append(pairs[i][0])
-                            puzz.cells[pairs[i][0][0]][pairs[i][0][1]].entryButton.background_color = (0, 0, 1, 1)
                         if puzz.cells[pairs[i][1][0]][pairs[i][1][1]].updateHidden(found):
                             removed.append(pairs[i][1])
-                            puzz.cells[pairs[i][1][0]][pairs[i][1][1]].entryButton.background_color = (0, 0, 1, 1)
                         if len(removed) > 0:
                             return [True, removed, found]
         # Re-initialize starting values
@@ -630,7 +628,6 @@ def searchHiddenTriples(category, puzz):
                             removed = []
                             for dex in unique:
                                 if puzz.cells[dex[0]][dex[1]].updateHidden(found):
-                                    puzz.cells[dex[0]][dex[1]].entryButton.background_color = (0, 0, 1, 1)
                                     removed.append(dex)
                             if len(removed) > 0:
                                 return [True, removed, found]
