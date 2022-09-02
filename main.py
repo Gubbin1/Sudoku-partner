@@ -156,6 +156,7 @@ class MainScreen(BoxLayout):
                 solveHistory.append(move[1].record)
                 print(move[1].record)
                 self.colorCells(move[1].record, puzz)
+                self.ids.historySlider.disabled = False
                 self.ids.historySlider.max = step
                 self.ids.historySlider.value = step
                 step += 1    
@@ -169,40 +170,47 @@ class MainScreen(BoxLayout):
 
     def colorCells(self, hist, puzz):
         move = hist['method']
-        loc = hist['cause']
+        cause = hist['cause']
+        effect = hist['effect']
+        num = hist['number']
+        category = hist['category']
         if move == "Fill In":
-            puzz.colorOnly([loc], [1, 1, 1, 1])
+            puzz.colorIn(([cause], [1, 1, 1, 1]))
         elif move == "Naked Single":
-            puzz.colorOnly([loc], [0, 1, 0, 1])
+            puzz.colorIn(([cause], [0, 1, 0, 1]))
         elif move == "Hidden Single":
-            puzz.colorOnly([loc], [0, 1, 0, 1])
+            puzz.colorIn(([cause], [0, 1, 0, 1]))
         elif move == "Pointer":
-            pass
+            puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
         elif move == "Locked Candidate":
-            pass
+            puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
         elif move == "Naked Pair":
-            pass
+            puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
         elif move == "Hidden Pair":
-            puzz.colorOnly(loc, [0, 0, 1, 1])
+            puzz.colorIn((cause, [0, 0, 1, 1]))
         elif move == "Naked Triple":
-            pass
+            puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
         elif move == "Hidden Triple":
-            puzz.colorOnly(loc, [0, 0, 1, 1])
+            puzz.colorIn((cause, [0, 0, 1, 1]))
         elif move == "X wing":
-            pass
+            puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
         elif move == "Y wing":
-            pass
+            puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
         elif move == "Simple Coloring":
-            pass
+            puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
         
 
     def reset(self, button):
         global puzz
+        global step
         puzz = puzzle()
         count = 0
         self.ids.startButton.text = "Lock in puzzle"
         self.ids.entryGrid.pos_hint = {'right': .75}
         self.ids.possDisplay.pos_hint = {'right': 0}
+        step = 0
+        self.ids.historySlider.disabled = True
+        solveHistory.clear()
         for i in range(9):
             for j in range(9):
                 puzz.cells[i][j] = cell(i, j, sudoku_toggles[count])

@@ -151,13 +151,16 @@ class puzzle():
     def index(self, coordinates):
         return self.cells[coordinates[0]][coordinates[1]]
     
-    def colorOnly(self, coordinates, color):
+    def colorIn(self, *colorMe):
+        allCoordinates = []
+        for tup in colorMe:
+            allCoordinates += tup[0]
+            for coordinates in tup[0]:
+                self.cells[coordinates[0]][coordinates[1]].entryButton.background_color = tup[1]
         for group in self.cells:
             for one in group:
-                if one.index not in coordinates:
+                if one.index not in allCoordinates:
                     one.entryButton.background_color = [1, 1, 1, 1]
-                else:
-                    one.entryButton.background_color = color
 
 # Creates an object that holds all the information of a sudoku move
 class history():
@@ -310,7 +313,7 @@ def searchLockedCandidate(category, puzz):
                     if dex not in found and n in puzz.cells[dex[0]][dex[1]].poss:
                         puzz.cells[dex[0]][dex[1]].poss.remove(n)
                         puzz.cells[dex[0]][dex[1]].entryButton.background_color = (0, 0, 1, 1)
-                        updated.append(puzz.cells[dex[0]][dex[1]])
+                        updated.append(dex)
                 if len(updated) > 0:
                     for dex in found:
                         puzz.cells[dex[0]][dex[1]].entryButton.background_color = (1, 0, 0, 1)
