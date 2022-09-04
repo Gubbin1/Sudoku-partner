@@ -14,9 +14,9 @@
             Label:
                 size_hint_x: padsize
             RelativeLayout:
-                SudokuButtons
+                SudokuButtons:
                     padding: 2, 2, 2, 2
-                    cols: 12
+                    cols: 11
                     pos_hint: {'top': 1}
                     size_hint_y: None if (root.width * 1.1) < root.height else 1
                     size_hint_x: 1 if (root.width * 1.1) < root.height else None
@@ -102,19 +102,23 @@
     on_pre_enter: root.chooseHint(app.main.ids.historySlider.value)
     BoxLayout:
         orientation: "vertical"
-        Button:
-            text: "top buffer"
-            size_hint_y: .1
+        Label:
+            size_hint_y: .05
         BoxLayout:
             size_hint_y: .6
-            Button:
+            Label:
                 size_hint_x: .1
-                text: "pad"
-            Button:
-                text: "example puzzle"
-            Button:
+            RelativeLayout:
+                HelperSudoku:
+                    padding: 2, 2, 2, 2
+                    cols: 11
+                    pos_hint: {'top': 1}
+                    size_hint_y: None if (root.width * 1.1) < root.height else 1
+                    size_hint_x: 1 if (root.width * 1.1) < root.height else None
+                    height: self.width 
+                    width: self.height
+            Label:
                 size_hint_x: .1
-                text: "pad"
         BoxLayout:
             size_hint_y: .3
             Button:

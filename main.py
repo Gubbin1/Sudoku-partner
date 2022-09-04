@@ -14,14 +14,17 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.clock import Clock
 from methods import *
 
+#TODO erase numbers when scrolling through history, add example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
 
 sudoku_toggles = []
 selection_buttons = []
 puzz = puzzle()
+helperPuzz = puzzle()
 step = 0
 solveHistory = []
 Complete = False
 SolveSpeed = .03
+helper_toggles = []
 
 easyExample = (6, 8, 0, 0, 0, 0, 0, 1, 7,
                 0, 0, 5, 0, 0, 3, 0, 0, 0,
@@ -88,7 +91,7 @@ class MainScreen(Screen):
                 if tb == puzz.cells[i][j].entryButton:
                     cellCount = 0
                     cellCount += 1
-                    self.ids.cellData.text = f"Cell possibilities: \n {puzz.cells[i][j].poss}, Block: {puzz.cells[i][j].block}, Index: {puzz.cells[i][j].index}"
+                    self.ids.cellData.text = f"Cell possibilities: \n {puzz.cells[i][j].poss}"
                 else:
                     puzz.cells[i][j].entryButton.state = "normal"
         if tb.state == "down":
@@ -164,7 +167,7 @@ class MainScreen(Screen):
                 Complete = True
 
     def addHistory(self):
-        message = f"Found {solveHistory[step]['method']} at: {solveHistory[step]['cause']}"
+        message = solveHistory[step]['method']
         newLabel = HistoryLabel(text = message)
         newLabel.stepCount = step
         self.ids.historyDisplay.add_widget(newLabel) 
@@ -250,6 +253,30 @@ class MainScreen(Screen):
             Complete = True
             return False
 
+class HelperSudoku(GridLayout):
+    def __init__(self, **kwargs):
+        super(HelperSudoku, self).__init__(**kwargs)
+        spaceWidth = 3
+        for i in range(9):
+            rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
+            for j in range(3):
+                columnSpacer = Label(size_hint = (None, 0), width = spaceWidth)
+                for k in range(3):
+                    b = ToggleButton()
+                    helper_toggles.append(b)
+                    self.add_widget(b)
+                if j < 2:
+                    self.add_widget(columnSpacer)
+            if (i + 1) % 3 == 0:
+                for a in range(11):
+                    rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
+                    self.add_widget(rowSpacer)
+        count = 0
+        for i in range(9):
+            for j in range(9):
+                newCell = cell(i, j, helper_toggles[count])
+                helperPuzz.cells[i][j] = newCell
+                count += 1
 
 class SudokuButtons(GridLayout):
     # Creates cells and fills cell array
@@ -264,9 +291,10 @@ class SudokuButtons(GridLayout):
                     b = ToggleButton()
                     sudoku_toggles.append(b)
                     self.add_widget(b)
-                self.add_widget(columnSpacer)
+                if j < 2:
+                    self.add_widget(columnSpacer)
             if (i + 1) % 3 == 0:
-                for a in range(12):
+                for a in range(11):
                     rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
                     self.add_widget(rowSpacer)
         count = 0
@@ -318,7 +346,7 @@ class OptionGrid(GridLayout):
     def __init__(self, **kwargs):
         super(OptionGrid, self).__init__(**kwargs)
         for i in range(0, 10):
-            title = ""
+            title = "Erase"
             if i > 0:
                 title = str(i)
             b = Button(text=title, disabled = True, on_press = self.num_entry)
@@ -339,10 +367,36 @@ class OptionGrid(GridLayout):
 class HelpScreen(Screen):
     def __init__(self, **kwargs):
         super(HelpScreen, self).__init__(**kwargs)
+        self.colorExamples = {"Naked Single": ([(0, 4)], [0, 1, 0, 1])}
+        self.examplePuzzles = {
+            "Naked Single": (1, 2, 3, 4, 0, 6, 7, 8, 9,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0)
+                            }
+    
+    def fillHelper(self, rule):
+        position = 0
+        filler = self.examplePuzzles[rule]
+        colorGuide = self.colorExamples[rule]
+        for i in range(9):
+            for j in range(9):
+                if filler[position] > 0:
+                    helperPuzz.cells[i][j].entryButton.text = str(filler[position])
+                else:
+                    helperPuzz.cells[i][j].entryButton.text = ""
+                position += 1
+        for colorme in colorGuide[0]:
+            helperPuzz.cells[colorme[0]][colorme[1]].entryButton.background_color = colorGuide[1]
 
     def chooseHint(self, value):
-        faq = ""
         rule = solveHistory[int(value)]['method']
+        self.fillHelper(rule)
         explanations = {
             "Naked Single" : "The highlighted cell has only one possible answer.",
             "Hidden Single" : "The highlighted cell is the only cell in its group able to be the given value.",
