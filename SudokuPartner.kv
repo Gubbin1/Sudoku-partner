@@ -40,7 +40,9 @@
         EntryLayout:
             size_hint_y: .25
             Button:
+                id: helpMe
                 size_hint_x: .25
+                disabled: True
                 text: "More info"
                 on_press: 
                     root.manager.current = 'helpscreen'
@@ -120,7 +122,7 @@
             Label:
                 size_hint_x: .1
         BoxLayout:
-            size_hint_y: .3
+            size_hint_y: .2
             Button:
                 size_hint_x: .25
                 on_press: 

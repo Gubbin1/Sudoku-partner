@@ -14,7 +14,7 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.clock import Clock
 from methods import *
 
-#TODO erase numbers when scrolling through history, add example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
+#TODO make it impossible to enter the same number in the same group, add rectangle that shows the "category" in question, erase numbers when scrolling through history, add example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
 
 sudoku_toggles = []
 selection_buttons = []
@@ -24,7 +24,7 @@ step = 0
 solveHistory = []
 Complete = False
 SolveSpeed = .03
-helper_toggles = []
+helper_buttons = []
 
 easyExample = (6, 8, 0, 0, 0, 0, 0, 1, 7,
                 0, 0, 5, 0, 0, 3, 0, 0, 0,
@@ -150,6 +150,7 @@ class MainScreen(Screen):
                         puzz.cells[i][j].updateRelated(puzz)
             button.text = "Get Hint"
             self.gameState = "Hints"
+            self.ids.helpMe.disabled = False
             self.ids.entryGrid.pos_hint = {'right': 0}
             self.ids.possDisplay.pos_hint = {'right': .75}
         else:
@@ -221,6 +222,7 @@ class MainScreen(Screen):
         self.ids.entryGrid.pos_hint = {'right': .75}
         self.ids.possDisplay.pos_hint = {'right': 0}
         self.ids.historyDisplay.text = ""
+        self.ids.helpMe.disabled = True
         step = 0
         self.ids.historySlider.disabled = True
         self.ids.historyDisplay.clear_widgets()
@@ -235,6 +237,7 @@ class MainScreen(Screen):
                 count += 1
 
     def solveAll(self, button):
+        self.ids.helpMe.disabled = False
         self.ids.historySlider.disabled = False
         Clock.schedule_interval(self.next, SolveSpeed)
     
@@ -262,8 +265,8 @@ class HelperSudoku(GridLayout):
             for j in range(3):
                 columnSpacer = Label(size_hint = (None, 0), width = spaceWidth)
                 for k in range(3):
-                    b = ToggleButton()
-                    helper_toggles.append(b)
+                    b = Button()
+                    helper_buttons.append(b)
                     self.add_widget(b)
                 if j < 2:
                     self.add_widget(columnSpacer)
@@ -274,7 +277,7 @@ class HelperSudoku(GridLayout):
         count = 0
         for i in range(9):
             for j in range(9):
-                newCell = cell(i, j, helper_toggles[count])
+                newCell = cell(i, j, helper_buttons[count])
                 helperPuzz.cells[i][j] = newCell
                 count += 1
 
@@ -367,7 +370,11 @@ class OptionGrid(GridLayout):
 class HelpScreen(Screen):
     def __init__(self, **kwargs):
         super(HelpScreen, self).__init__(**kwargs)
-        self.colorExamples = {"Naked Single": ([(0, 4)], [0, 1, 0, 1])}
+        self.colorExamples = {
+            "Naked Single": (([(0, 4)], (0, 1, 0, 1))),
+            "Hidden Single": (([(4, 4)], (0, 1, 0, 1))),
+            "Pointer": (([(0, 4), (1, 4), (2, 4)], (0, 0, 1, 1)),([(3, 4), (4, 4), (5, 4), (6, 4), (7, 4), (8, 4)], (1, 1, 0, 1)))
+            }
         self.examplePuzzles = {
             "Naked Single": (1, 2, 3, 4, 0, 6, 7, 8, 9,
                             0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -377,7 +384,26 @@ class HelpScreen(Screen):
                             0, 0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0)
+                            0, 0, 0, 0, 0, 0, 0, 0, 0),
+            "Hidden Single": (0, 0, 0, 1, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            1, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 1,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 1, 0, 0, 0),
+            "Pointer": (0, 0, 0, 1, 0, 7, 0, 0, 0,
+                        0, 0, 0, 2, 0, 8, 0, 0, 0,
+                        0, 0, 0, 3, 0, 9, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0)
+            
                             }
     
     def fillHelper(self, rule):
@@ -391,12 +417,16 @@ class HelpScreen(Screen):
                 else:
                     helperPuzz.cells[i][j].entryButton.text = ""
                 position += 1
-        for colorme in colorGuide[0]:
-            helperPuzz.cells[colorme[0]][colorme[1]].entryButton.background_color = colorGuide[1]
+        for set in colorGuide:
+            for colorme in set[0]:
+                helperPuzz.cells[colorme[0]][colorme[1]].entryButton.background_color = set[1]
 
     def chooseHint(self, value):
+        if len(solveHistory) == 0:
+            self.ids.explainer.text = "Sudoku is a game where you must figure out how to fit all the numbers 1-9 in every row, column, and block without having any doubles."
+            return
         rule = solveHistory[int(value)]['method']
-        self.fillHelper(rule)
+
         explanations = {
             "Naked Single" : "The highlighted cell has only one possible answer.",
             "Hidden Single" : "The highlighted cell is the only cell in its group able to be the given value.",
@@ -410,8 +440,14 @@ class HelpScreen(Screen):
             "X wing": "The BLUE cells are the only cells in their rows/columns which can be a certain value. Therefore, all related cells in their row/column cannot be that value.",
             "Y wing": "The BLUE cells share a trio of options in such a way that we know that any cell that can see all three of them cannot have one of those options.",
             "Simple Coloring": "By following a chain of cells that rely on eachother, alternating their color, we can see that there are some cells which will be eliminated whether the chain winds up as blue or red, therefore that value can be eliminated from them."}
-        faq = explanations[rule]
-        self.ids.explainer.text = faq
+
+        if rule == "Fill In":
+            self.ids.explainer.text = explanations[rule]
+            return
+
+        self.fillHelper(rule)
+        
+        self.ids.explainer.text = explanations[rule]
 
 class SudokuPartnerApp(App):
     def build(self):
