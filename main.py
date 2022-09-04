@@ -6,6 +6,7 @@ Config.set('graphics', 'height', '800')
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.stacklayout import StackLayout
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -22,7 +23,7 @@ step = 0
 pressedButton = ToggleButton
 solveHistory = []
 Complete = False
-SolveSpeed = .05
+SolveSpeed = .03
 
 easyExample = (6, 8, 0, 0, 0, 0, 0, 1, 7,
                 0, 0, 5, 0, 0, 3, 0, 0, 0,
@@ -138,6 +139,7 @@ class MainScreen(BoxLayout):
 
     def run_solver(self, button):
         global step
+        global Complete
         if button.text == "Lock in puzzle":
             for i in range(9):
                 for j in range(9):
@@ -154,18 +156,29 @@ class MainScreen(BoxLayout):
             move = findNextMove(puzz)
             if move[0]:
                 solveHistory.append(move[1].record)
+                self.addHistory()
                 print(move[1].record)
                 self.colorCells(move[1].record, puzz)
                 self.ids.historySlider.disabled = False
                 self.ids.historySlider.max = step
                 self.ids.historySlider.value = step
-                step += 1    
+                step += 1
+            else:
+                Complete = True
 
+    def addHistory(self):
+        message = f"Found {solveHistory[step]['method']} at: {solveHistory[step]['cause']}"
+        newLabel = HistoryLabel(text = message)
+        newLabel.stepCount = step
+        self.ids.historyDisplay.add_widget(newLabel) 
+    
     def displayHistory(self, slider, value):
-        self.ids.historyDisplay.text = f"Found {solveHistory[int(value)]['method']} at: {solveHistory[int(value)]['cause']}"
-        if self.ids.historySlider.value < step:
-            #erase filled cells up to the point of the value
-            pass
+        # Move historyDisplay to match the value of the slider
+        self.ids.historyDisplay.pos_hint['top'] = (int(value) + 1.5) * .2
+        self.ids.scrollHolder.do_layout()
+        for each in self.ids.historyDisplay.children:
+            each.updateOpacity(int(value))
+        # If we don't call the "do layout" method, the new position of the hsitoryDisplay layout isn't updated until the screen is resized.
         self.colorCells(solveHistory[int(value)], puzz)
 
     def colorCells(self, hist, puzz):
@@ -198,7 +211,6 @@ class MainScreen(BoxLayout):
             puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
         elif move == "Simple Coloring":
             puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
-        
 
     def reset(self, button):
         global puzz
@@ -208,8 +220,10 @@ class MainScreen(BoxLayout):
         self.ids.startButton.text = "Lock in puzzle"
         self.ids.entryGrid.pos_hint = {'right': .75}
         self.ids.possDisplay.pos_hint = {'right': 0}
+        self.ids.historyDisplay.text = ""
         step = 0
         self.ids.historySlider.disabled = True
+        self.ids.historyDisplay.clear_widgets()
         solveHistory.clear()
         for i in range(9):
             for j in range(9):
@@ -221,7 +235,8 @@ class MainScreen(BoxLayout):
                 count += 1
 
     def solveAll(self, button):
-            Clock.schedule_interval(self.next, SolveSpeed)
+        self.ids.historySlider.disabled = False
+        Clock.schedule_interval(self.next, SolveSpeed)
     
     def next(self, dt):
         global step
@@ -231,7 +246,6 @@ class MainScreen(BoxLayout):
             solveHistory.append(move[1].record)
             self.ids.historySlider.max = step
             self.ids.historySlider.value = step
-            self.ids.historyDisplay.text = f"Found {solveHistory[step]['method']} at: {solveHistory[step]['cause']}"
             step += 1
             return True
         else:
@@ -268,12 +282,38 @@ class SudokuButtons(GridLayout):
 class EntryLayout(RelativeLayout):
     def __init__(self,**kwargs):
         super(EntryLayout,self).__init__(**kwargs)
-        pass
+        
     # First press updates cells possible values based on entered info.
     # Second and on generates new hints
 
-            
+class HistoryScroll(StackLayout):
+    def __init__(self,**kwargs):
+        super(HistoryScroll,self).__init__(**kwargs)
+        
 
+class HistoryLabel(Label):
+    def __init__(self,**kwargs):
+        super(HistoryLabel,self).__init__(**kwargs)
+        self.stepCount = None
+
+    def updateOpacity(self, stepN):
+        opacity = 1
+        background = (1, 1, 1, .3)
+        diff = stepN - self.stepCount
+        if 0 < diff < 5:
+            opacity = 1 - diff / 4
+            background = (1, 1, 1, 0)
+        elif 0 > diff > -3:
+            opacity = 1 - -diff / 2
+            background = (1, 1, 1, 0)
+        elif diff == 0:
+            pass
+        else:
+            opacity = 0
+            background = (1, 1, 1, 0)
+        
+        self.background_color = background
+        self.color = [1, 1, 1, opacity]
 
 class OptionGrid(GridLayout):
     # Creates option selection buttons

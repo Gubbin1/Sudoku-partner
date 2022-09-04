@@ -52,13 +52,17 @@
             orientation: "vertical"
             size_hint_x: .5
             pos_hint: {'right': 0}
-            Label:
-                id: historyDisplay
+            RelativeLayout:
+                id: scrollHolder
+                HistoryScroll:
+                    pos_hint: {'top': .5}
+                    orientation: 'lr-tb'
+                    id: historyDisplay
             Slider:
+                size_hint_y: .3
                 id: historySlider
                 min: 0
                 max: 0
-
         BoxLayout:
             size_hint_x: .25
             pos_hint: {'right': 1}
@@ -75,6 +79,9 @@
                 on_press: root.reset(self)
 
 <ExampleDokus@BoxLayout>
+
+<HistoryLabel>:
+    size_hint_y: .2
 
 <ToggleButton>:
     on_press: app.root.switch_active(self)
