@@ -4,14 +4,13 @@ Config.set('graphics', 'width', '600')
 Config.set('graphics', 'height', '800')
 
 from kivy.uix.relativelayout import RelativeLayout
-from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.stacklayout import StackLayout
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.togglebutton import ToggleButton
-from kivy.metrics import dp
 from kivy.clock import Clock
 from methods import *
 
@@ -20,7 +19,6 @@ sudoku_toggles = []
 selection_buttons = []
 puzz = puzzle()
 step = 0
-pressedButton = ToggleButton
 solveHistory = []
 Complete = False
 SolveSpeed = .03
@@ -76,7 +74,7 @@ evilExample = (0, 0, 0, 6, 0, 0, 0, 8, 0,
                 0, 7, 0, 1, 0, 0, 6, 0, 5)
 
 
-class MainScreen(BoxLayout):
+class MainScreen(Screen):
     def __init__(self, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
         self.Message = "Enter your puzzle"
@@ -84,7 +82,6 @@ class MainScreen(BoxLayout):
         self.ids.historySlider.bind(value = self.displayHistory)
     # Makes sure only one cell is selected at a time
     def switch_active(self, togglebutton):
-        global pressedButton
         tb = togglebutton
         for i in range(9):
             for j in range(9):
@@ -174,7 +171,7 @@ class MainScreen(BoxLayout):
     
     def displayHistory(self, slider, value):
         # Move historyDisplay to match the value of the slider
-        self.ids.historyDisplay.pos_hint['top'] = (int(value) + 1.5) * .2
+        self.ids.historyDisplay.pos_hint['top'] = (int(value) + 2.5) * .2
         self.ids.scrollHolder.do_layout()
         for each in self.ids.historyDisplay.children:
             each.updateOpacity(int(value))
@@ -246,6 +243,7 @@ class MainScreen(BoxLayout):
             solveHistory.append(move[1].record)
             self.ids.historySlider.max = step
             self.ids.historySlider.value = step
+            self.addHistory()
             step += 1
             return True
         else:
@@ -338,10 +336,39 @@ class OptionGrid(GridLayout):
         for butt in selection_buttons:
             butt.disabled = True
 
+class HelpScreen(Screen):
+    def __init__(self, **kwargs):
+        super(HelpScreen, self).__init__(**kwargs)
+
+    def chooseHint(self, value):
+        faq = ""
+        rule = solveHistory[int(value)]['method']
+        explanations = {
+            "Naked Single" : "The highlighted cell has only one possible answer.",
+            "Hidden Single" : "The highlighted cell is the only cell in its group able to be the given value.",
+            "Fill In" : "The cell has been filled, which tells us the other cells that it sees can no longer have the same value.",
+            "Pointer": "The value must be in one of the BLUE cells in the block, which means that the value cannot be in any of the related YELLOW cells.",
+            "Locked Candidate": "The value cannot appear in any of the RED cells, therefore it must occur in one of the BLUE cells, and can be eliminated from the YELLOW cells.",
+            "Naked Pair": "The BLUE cells share a pair of possibilities, meaning one of them must be one of the values, while the other must be the other value. This means these two possibilities can be eliminated from all of the YELLOW cells.",
+            "Hidden Pair": "The BLUE cells are the only cells in their group which can possibly be a pair of values. This means all other possibilities can be eliminated from them.",
+            "Naked Triple": "The BLUE cells share a trio of possibilities, meaning all of the YELLOW cells cannot contain any of those values.",
+            "Hidden Triple": "The BLUE cells are the only cells in their group to have a trio of possibilities, therefore all other possibilities can be eliminated from them.",
+            "X wing": "The BLUE cells are the only cells in their rows/columns which can be a certain value. Therefore, all related cells in their row/column cannot be that value.",
+            "Y wing": "The BLUE cells share a trio of options in such a way that we know that any cell that can see all three of them cannot have one of those options.",
+            "Simple Coloring": "By following a chain of cells that rely on eachother, alternating their color, we can see that there are some cells which will be eliminated whether the chain winds up as blue or red, therefore that value can be eliminated from them."}
+        faq = explanations[rule]
+        self.ids.explainer.text = faq
 
 class SudokuPartnerApp(App):
     def build(self):
-        return MainScreen()
+        self.sm = ScreenManager()
+        self.main = MainScreen(name = 'mainscreen')
+        self.sm.add_widget(self.main)
+
+        self.help = HelpScreen(name = 'helpscreen')
+        self.sm.add_widget(self.help)
+
+        return self.sm
 
 
 SudokuPartnerApp().run()

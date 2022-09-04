@@ -1,82 +1,93 @@
 #:set padsize .1
 <MainScreen>:
-    canvas.before:
-        Rectangle:
-            size: self.size
-            source: 'images/bg_gradient.jpg'
-    orientation: "vertical"
-    Label:
-        id: cellData
-        size_hint_y: .1
-        text: "Cell Info"
     BoxLayout:
+        canvas.before:
+            Rectangle:
+                size: self.size
+                source: 'images/bg_gradient.jpg'
+        orientation: "vertical"
         Label:
-            size_hint_x: padsize
-        RelativeLayout:
-            SudokuButtons
-                padding: 2, 2, 2, 2
-                cols: 12
-                pos_hint: {'top': 1}
-                size_hint_y: None if (root.width * 1.1) < root.height else 1
-                size_hint_x: 1 if (root.width * 1.1) < root.height else None
-                height: self.width 
-                width: self.height
-                text: "Puzzle area" 
-        ExampleDokus:
-            orientation: "vertical"
-            size_hint_x: padsize
-            Button:
-                text: "E"
-                on_press: app.root.fill_example(self)
-            Button:
-                text: "M"
-                on_press: app.root.fill_example(self)
-            Button:
-                text: "H"
-                on_press: app.root.fill_example(self)
-            Button:
-                text: "X"
-                on_press: app.root.fill_example(self)
-    EntryLayout:
-        size_hint_y: .25
-        Button:
-            size_hint_x: .25
-            text: "More info"
-        OptionGrid:
-            id: entryGrid
-            cols: 5
-            size_hint_x: .5
-            pos_hint: {'right': .75}
+            id: cellData
+            size_hint_y: .1
+            text: "Cell Info"
         BoxLayout:
-            id: possDisplay
-            orientation: "vertical"
-            size_hint_x: .5
-            pos_hint: {'right': 0}
+            Label:
+                size_hint_x: padsize
             RelativeLayout:
-                id: scrollHolder
-                HistoryScroll:
-                    pos_hint: {'top': .5}
-                    orientation: 'lr-tb'
-                    id: historyDisplay
-            Slider:
-                size_hint_y: .3
-                id: historySlider
-                min: 0
-                max: 0
-        BoxLayout:
-            size_hint_x: .25
-            pos_hint: {'right': 1}
-            orientation: "vertical"
-            Button: 
-                id: startButton
-                text: "Lock in puzzle"
-                on_press: root.run_solver(self)
-            Button: 
-                text: "Solve puzzle"
-                on_press: root.solveAll(self)
+                SudokuButtons
+                    padding: 2, 2, 2, 2
+                    cols: 12
+                    pos_hint: {'top': 1}
+                    size_hint_y: None if (root.width * 1.1) < root.height else 1
+                    size_hint_x: 1 if (root.width * 1.1) < root.height else None
+                    height: self.width 
+                    width: self.height
+            ExampleDokus:
+                orientation: "vertical"
+                size_hint_x: padsize
+                Button:
+                    text: "E"
+                    on_press: root.fill_example(self)
+                Button:
+                    text: "M"
+                    on_press: root.fill_example(self)
+                Button:
+                    text: "H"
+                    on_press: root.fill_example(self)
+                Button:
+                    text: "X"
+                    on_press: root.fill_example(self)
+        EntryLayout:
+            size_hint_y: .25
             Button:
-                text: "Reset"
-                on_press: root.reset(self)
+                size_hint_x: .25
+                text: "More info"
+                on_press: 
+                    root.manager.current = 'helpscreen'
+                    root.manager.transition.direction = 'left'
+
+            OptionGrid:
+                id: entryGrid
+                cols: 5
+                size_hint_x: .5
+                pos_hint: {'right': .75}
+            BoxLayout:
+                id: possDisplay
+                orientation: "vertical"
+                size_hint_x: .5
+                pos_hint: {'right': 0}
+                RelativeLayout:
+                    id: scrollHolder
+                    canvas:
+                        Color: 
+                            rgba: .9, .9, 1, .2
+                        Rectangle:
+                            size: (self.width, self.height / 5)
+                            pos: 0, self.height * 3 / 10
+
+                    HistoryScroll:
+                        pos_hint: {'top': .5}
+                        orientation: 'lr-tb'
+                        id: historyDisplay
+                Slider:
+                    size_hint_y: .3
+                    id: historySlider
+                    min: 0
+                    max: 0
+            BoxLayout:
+                size_hint_x: .25
+                pos_hint: {'right': 1}
+                orientation: "vertical"
+                Button: 
+                    id: startButton
+                    text: "Lock in puzzle"
+                    on_press: root.run_solver(self)
+                Button: 
+                    text: "Solve puzzle"
+                    on_press: root.solveAll(self)
+                Button:
+                    text: "Reset"
+                    on_press: root.reset(self)
 
 <ExampleDokus@BoxLayout>
 
@@ -84,4 +95,39 @@
     size_hint_y: .2
 
 <ToggleButton>:
-    on_press: app.root.switch_active(self)
+    on_press: app.main.switch_active(self)
+
+
+<HelpScreen>:
+    on_pre_enter: root.chooseHint(app.main.ids.historySlider.value)
+    BoxLayout:
+        orientation: "vertical"
+        Button:
+            text: "top buffer"
+            size_hint_y: .1
+        BoxLayout:
+            size_hint_y: .6
+            Button:
+                size_hint_x: .1
+                text: "pad"
+            Button:
+                text: "example puzzle"
+            Button:
+                size_hint_x: .1
+                text: "pad"
+        BoxLayout:
+            size_hint_y: .3
+            Button:
+                size_hint_x: .25
+                on_press: 
+                    root.manager.current = 'mainscreen'
+                    root.manager.transition.direction = 'right'
+                text: "Return"
+            Label:
+                id: explainer
+                text_size: self.size
+                valign: 'middle'
+                halign: 'center'
+                text: "Sorry I'm not sure how you got here."
+            Label:
+                size_hint_x: .05

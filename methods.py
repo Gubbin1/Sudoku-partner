@@ -1,7 +1,3 @@
-from re import L
-from unittest.mock import NonCallableMagicMock
-
-
 def findNextMove(puzz):
     fl = [fillGreen, nakedSingle, hiddenSingle, nakedPairs, lockedCandidate, pointingTuple, hiddenPairs, nakedTriples, hiddenTriples, Xwing, Ywing, simpleColoring]
     check = None
