@@ -14,7 +14,7 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.clock import Clock
 from methods import *
 
-#TODO make it impossible to enter the same number in the same group, add rectangle that shows the "category" in question, erase numbers when scrolling through history, finish example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
+#TODO Detect unsolvable puzzles, add rectangle that shows the "category" in question, finish example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
 
 sudoku_toggles = []
 selection_buttons = []
@@ -177,10 +177,31 @@ class MainScreen(Screen):
         # Move historyDisplay to match the value of the slider
         self.ids.historyDisplay.pos_hint['top'] = (int(value) + 2.5) * .2
         self.ids.scrollHolder.do_layout()
+        # If we don't call the "do layout" method, the new position of the historyDisplay layout isn't updated until the screen is resized.
         for each in self.ids.historyDisplay.children:
             each.updateOpacity(int(value))
-        # If we don't call the "do layout" method, the new position of the hsitoryDisplay layout isn't updated until the screen is resized.
+        # Updates the colors of the puzzle based on the currently displayed step in the history
         self.colorCells(solveHistory[int(value)], puzz)
+        if value < step:
+            for i in range(len(solveHistory)):
+                myCell = None
+                if solveHistory[i]["method"] == "Fill In":
+                    if i <= value:
+                        myCell = solveHistory[i]["cause"]
+                        puzz.cells[myCell[0]][myCell[1]].entryButton.color = (1, 1, 1, 1)
+                    else:
+                        myCell = solveHistory[i]["cause"]
+                        puzz.cells[myCell[0]][myCell[1]].entryButton.color = (1, 1, 1, 0)
+    
+    def checkSolvable(self, puzz):
+        numCount = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+        for i in range(9):
+            for j in range(9):
+                if puzz.cells[i][j].value != "":
+                    puzz.remaining -= 1
+        if puzz.remaining > 64:
+            return [False, "Not enough starting clues."]
+        return True
 
     def colorCells(self, hist, puzz):
         move = hist['method']
@@ -380,8 +401,8 @@ class HelpScreen(Screen):
             "Naked Triple": [([(4, 3), (4, 4), (4, 5)], (0, 0, 1, 1)), ([(3, 3), (3, 4), (3, 5), (5, 3), (5, 4), (5, 5)], (1, 1, 0, 1))],
             "Hidden Triple": [([(0, 0), (0, 1), (0, 2)], (0, 1, 0, 1))],
             "X wing": [([(2, 3), (2, 7), (6, 3), (6, 7)], (0, 0, 1, 1)), ([(0, 3), (1, 3), (3, 3), (4, 3), (5, 3), (7, 3), (8, 3), (0, 7), (1, 7), (3, 7), (4, 7), (5, 7), (7, 7), (8, 7)], (1, 1, 0, 1))],
-            "Y wing": [([], (0, 0, 1, 1)), ([], (1, 1, 0, 1))],
-            "Simple Coloring": [([], (1, 0, 0, 1)), ([], (0, 0, 1, 1)), ([], (1, 1, 0, 1))]
+            "Y wing": [([(0, 0)], (0, 0, 1, 1)), ([(0, 1)], (1, 1, 0, 1))],
+            "Simple Coloring": [([(0, 0)], (1, 0, 0, 1)), ([(0, 1)], (0, 0, 1, 1)), ([(0, 2)], (1, 1, 0, 1))]
             }
         self.examplePuzzles = {
             "Naked Single": (1, 2, 3, 4, 0, 6, 7, 8, 9,
@@ -465,8 +486,24 @@ class HelpScreen(Screen):
                         9, 8, 7, 0, 6, 5, 4, 0, 3,
                         0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0),
-            "Y wing": (),
-            "Simple Coloring": ()
+            "Y wing": (0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                        0, 0, 0, 0, 0, 0, 0, 0, 0),
+            "Simple Coloring": (0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                                0, 0, 0, 0, 0, 0, 0, 0, 0)
                             }
     
     def cleanPuzz(self):
