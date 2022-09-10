@@ -126,6 +126,7 @@
             Button:
                 size_hint_x: .25
                 on_press: 
+                    root.cleanPuzz()
                     root.manager.current = 'mainscreen'
                     root.manager.transition.direction = 'right'
                 text: "Return"

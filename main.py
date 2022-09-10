@@ -14,7 +14,7 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.clock import Clock
 from methods import *
 
-#TODO make it impossible to enter the same number in the same group, add rectangle that shows the "category" in question, erase numbers when scrolling through history, add example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
+#TODO make it impossible to enter the same number in the same group, add rectangle that shows the "category" in question, erase numbers when scrolling through history, finish example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
 
 sudoku_toggles = []
 selection_buttons = []
@@ -371,9 +371,17 @@ class HelpScreen(Screen):
     def __init__(self, **kwargs):
         super(HelpScreen, self).__init__(**kwargs)
         self.colorExamples = {
-            "Naked Single": (([(0, 4)], (0, 1, 0, 1))),
-            "Hidden Single": (([(4, 4)], (0, 1, 0, 1))),
-            "Pointer": (([(0, 4), (1, 4), (2, 4)], (0, 0, 1, 1)),([(3, 4), (4, 4), (5, 4), (6, 4), (7, 4), (8, 4)], (1, 1, 0, 1)))
+            "Naked Single": [([(0, 4)], (0, 1, 0, 1))],
+            "Hidden Single": [([(4, 4)], (0, 1, 0, 1))],
+            "Pointer": [([(0, 4), (1, 4), (2, 4)], (0, 0, 1, 1)),([(3, 4), (4, 4), (5, 4), (6, 4), (7, 4), (8, 4)], (1, 1, 0, 1))],
+            "Locked Candidate": [([(1, 6), (1, 7), (1, 8)], (0, 0, 1, 1)),([(0, 7), (2, 6), (2, 7)], (1, 1, 0, 1)),([(1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)],(1, 0, 0, 1))],
+            "Naked Pair": [([(0, 0), (0, 1)], (0, 0, 1, 1)), ([(1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)], (1, 1, 0, 1))],
+            "Hidden Pair": [([(0, 0), (0, 1)], (0, 0, 1, 1))],
+            "Naked Triple": [([(4, 3), (4, 4), (4, 5)], (0, 0, 1, 1)), ([(3, 3), (3, 4), (3, 5), (5, 3), (5, 4), (5, 5)], (1, 1, 0, 1))],
+            "Hidden Triple": [([(0, 0), (0, 1), (0, 2)], (0, 1, 0, 1))],
+            "X wing": [([(2, 3), (2, 7), (6, 3), (6, 7)], (0, 0, 1, 1)), ([(0, 3), (1, 3), (3, 3), (4, 3), (5, 3), (7, 3), (8, 3), (0, 7), (1, 7), (3, 7), (4, 7), (5, 7), (7, 7), (8, 7)], (1, 1, 0, 1))],
+            "Y wing": [([], (0, 0, 1, 1)), ([], (1, 1, 0, 1))],
+            "Simple Coloring": [([], (1, 0, 0, 1)), ([], (0, 0, 1, 1)), ([], (1, 1, 0, 1))]
             }
         self.examplePuzzles = {
             "Naked Single": (1, 2, 3, 4, 0, 6, 7, 8, 9,
@@ -402,10 +410,71 @@ class HelpScreen(Screen):
                         0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0)
-            
+                        0, 0, 0, 0, 0, 0, 0, 0, 0),
+            "Locked Candidate": (0, 2, 0, 4, 5, 0, 7, 0, 9,
+                                9, 0, 5, 0, 2, 3, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 2, 
+                                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 1, 0, 0 ,0, 0, 0,
+                                0, 1, 0, 0, 0, 0, 0, 0, 0),
+            "Naked Pair": (0, 0, 3, 4, 5, 6, 7, 8, 9,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0 ,0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0),
+            "Hidden Pair": (0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 1, 2, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 1, 2, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 1, 0, 0, 0, 0, 0, 0,
+                            0, 0, 2, 0, 0, 0, 0, 0, 0, 
+                            0, 0, 0, 0, 0, 0, 0, 0, 0),
+            "Naked Triple": (0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            4, 5, 6, 0, 0, 0, 7, 8, 9,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                            0, 0, 0, 0, 0, 0, 0, 0, 0),
+            "Hidden Triple": (0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 1, 2, 3, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 1, 2, 3,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                            0, 0, 0, 0, 0, 0, 0, 0, 0),
+            "X wing": (0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        2, 3, 4, 0, 5, 6, 7, 0, 8,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        9, 8, 7, 0, 6, 5, 4, 0, 3,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0),
+            "Y wing": (),
+            "Simple Coloring": ()
                             }
     
+    def cleanPuzz(self):
+        for i in range(9):
+            for j in range(9):
+                helperPuzz.cells[i][j].entryButton.background_color = (1, 1, 1, 1)
+                helperPuzz.cells[i][j].entryButton.text = ""
+
     def fillHelper(self, rule):
         position = 0
         filler = self.examplePuzzles[rule]
@@ -432,12 +501,12 @@ class HelpScreen(Screen):
             "Hidden Single" : "The highlighted cell is the only cell in its group able to be the given value.",
             "Fill In" : "The cell has been filled, which tells us the other cells that it sees can no longer have the same value.",
             "Pointer": "The value must be in one of the BLUE cells in the block, which means that the value cannot be in any of the related YELLOW cells.",
-            "Locked Candidate": "The value cannot appear in any of the RED cells, therefore it must occur in one of the BLUE cells, and can be eliminated from the YELLOW cells.",
+            "Locked Candidate": "1 cannot appear in any of the RED cells, therefore it must occur in one of the BLUE cells, and can be eliminated from the YELLOW cells.",
             "Naked Pair": "The BLUE cells share a pair of possibilities, meaning one of them must be one of the values, while the other must be the other value. This means these two possibilities can be eliminated from all of the YELLOW cells.",
             "Hidden Pair": "The BLUE cells are the only cells in their group which can possibly be a pair of values. This means all other possibilities can be eliminated from them.",
             "Naked Triple": "The BLUE cells share a trio of possibilities, meaning all of the YELLOW cells cannot contain any of those values.",
             "Hidden Triple": "The BLUE cells are the only cells in their group to have a trio of possibilities, therefore all other possibilities can be eliminated from them.",
-            "X wing": "The BLUE cells are the only cells in their rows/columns which can be a certain value. Therefore, all related cells in their row/column cannot be that value.",
+            "X wing": "The BLUE cells are the only cells in their rows/columns which contain 1. Therefore, all related cells in their row/column cannot 1.",
             "Y wing": "The BLUE cells share a trio of options in such a way that we know that any cell that can see all three of them cannot have one of those options.",
             "Simple Coloring": "By following a chain of cells that rely on eachother, alternating their color, we can see that there are some cells which will be eliminated whether the chain winds up as blue or red, therefore that value can be eliminated from them."}
 
