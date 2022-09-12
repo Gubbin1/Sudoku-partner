@@ -14,7 +14,7 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.clock import Clock
 from methods import *
 
-#TODO Detect unsolvable puzzles, add rectangle that shows the "category" in question, finish example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
+#TODO add rectangle that shows the "category" in question, finish example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
 
 sudoku_toggles = []
 selection_buttons = []
@@ -22,7 +22,6 @@ puzz = puzzle()
 helperPuzz = puzzle()
 step = 0
 solveHistory = []
-Complete = False
 SolveSpeed = .03
 helper_buttons = []
 
@@ -139,8 +138,11 @@ class MainScreen(Screen):
 
     def run_solver(self, button):
         global step
-        global Complete
         if button.text == "Lock in puzzle":
+            solvable = self.checkSolvable(puzz)
+            if not solvable[0]:
+                self.ids.cellData.text = solvable[1]
+                return
             for i in range(9):
                 for j in range(9):
                     if puzz.cells[i][j].entryButton.text != "":
@@ -153,7 +155,7 @@ class MainScreen(Screen):
             self.ids.helpMe.disabled = False
             self.ids.entryGrid.pos_hint = {'right': 0}
             self.ids.possDisplay.pos_hint = {'right': .75}
-        else:
+        elif puzz.remaining > 0:
             move = findNextMove(puzz)
             if move[0]:
                 solveHistory.append(move[1].record)
@@ -165,7 +167,9 @@ class MainScreen(Screen):
                 self.ids.historySlider.value = step
                 step += 1
             else:
-                Complete = True
+                puzz.complete = True
+        else:
+            puzz.complete = True
 
     def addHistory(self):
         message = solveHistory[step]['method']
@@ -193,15 +197,50 @@ class MainScreen(Screen):
                         myCell = solveHistory[i]["cause"]
                         puzz.cells[myCell[0]][myCell[1]].entryButton.color = (1, 1, 1, 0)
     
-    def checkSolvable(self, puzz):
-        numCount = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+    def checkSolvable(self, puzz):   
         for i in range(9):
             for j in range(9):
-                if puzz.cells[i][j].value != "":
+                if puzz.cells[i][j].entryButton.text != "":
                     puzz.remaining -= 1
         if puzz.remaining > 64:
-            return [False, "Not enough starting clues."]
-        return True
+            return [False, "Not enough starting clues.",[]]
+        for group in puzz.cells:
+            numCount = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+            for box in group:
+                if box.entryButton.text != "":
+                    numCount[box.entryButton.text] += 1
+            for n in puzz.nums:
+                if numCount[n] > 1:
+                    found = []
+                    for box in group:
+                        if box.entryButton.text == n:
+                            found.append(box.index)
+                    return [False, f"Please enter only one {n} per row.", found]
+        for i in range(9):
+            numCount = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+            for j in range(9):
+                if puzz.cells[j][i].entryButton.text != "":
+                    numCount[puzz.cells[j][i].entryButton.text] += 1
+            for n in puzz.nums:
+                if numCount[n] > 1:
+                    found = []
+                    for j in range(9):
+                        if puzz.cells.entryButton.text == n:
+                            found.append((j, i))
+                    return [False, f"Please enter only one {n} per column.", found]
+        for key in puzz.blockKeys:
+            numCount = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
+            for box in puzz.blockDic[key]:
+                if puzz.index(box).entryButton.text != "":
+                    numCount[puzz.index(box).entryButton.text] += 1
+            for n in puzz.nums:
+                if numCount[n] > 1:
+                    found = []
+                    for box in puzz.blockDic[key]:
+                        if puzz.index(box).entryButton.text == n:
+                            found.append(box)
+                    return [False, f"Please enter only one {n} per box.", found]
+        return [True]
 
     def colorCells(self, hist, puzz):
         move = hist['method']
@@ -264,7 +303,6 @@ class MainScreen(Screen):
     
     def next(self, dt):
         global step
-        global Complete
         move = findNextMove(puzz)
         if move[0]:
             solveHistory.append(move[1].record)
@@ -274,7 +312,7 @@ class MainScreen(Screen):
             step += 1
             return True
         else:
-            Complete = True
+            puzz.complete = True
             return False
 
 class HelperSudoku(GridLayout):

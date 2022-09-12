@@ -134,6 +134,7 @@ class puzzle():
         self.columns = []
         self.blocks = []
         self.nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+        self.complete = False
         for i in range(9):
             row = []
             column = []
