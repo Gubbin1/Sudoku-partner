@@ -9,6 +9,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.stacklayout import StackLayout
 from kivy.app import App
 from kivy.uix.button import Button
+from kivy.properties import NumericProperty
 from kivy.uix.label import Label
 from kivy.uix.togglebutton import ToggleButton
 from kivy.clock import Clock
@@ -77,11 +78,17 @@ evilExample = (0, 0, 0, 6, 0, 0, 0, 8, 0,
 
 
 class MainScreen(Screen):
+    outlineColumn = NumericProperty(1)
+    outlineWidth = NumericProperty(1)
+    outlineHeight = NumericProperty(1)
+    outlineRow = NumericProperty(1)
+    outlineAlpha = NumericProperty(0)
     def __init__(self, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
         self.Message = "Enter your puzzle"
         self.gameState = "Entry"
         self.ids.historySlider.bind(value = self.displayHistory)
+        
     # Makes sure only one cell is selected at a time
     def switch_active(self, togglebutton):
         tb = togglebutton
@@ -196,6 +203,7 @@ class MainScreen(Screen):
                     else:
                         myCell = solveHistory[i]["cause"]
                         puzz.cells[myCell[0]][myCell[1]].entryButton.color = (1, 1, 1, 0)
+        self.makeOutline(solveHistory[int(value)])
     
     def checkSolvable(self, puzz):   
         for i in range(9):
@@ -251,9 +259,9 @@ class MainScreen(Screen):
         if move == "Fill In":
             puzz.colorIn(([cause], [1, 1, 1, 1]))
         elif move == "Naked Single":
-            puzz.colorIn(([cause], [0, 1, 0, 1]))
+            puzz.colorIn((cause, [0, 1, 0, 1]))
         elif move == "Hidden Single":
-            puzz.colorIn(([cause], [0, 1, 0, 1]))
+            puzz.colorIn((cause, [0, 1, 0, 1]))
         elif move == "Pointer":
             puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
         elif move == "Locked Candidate":
@@ -314,6 +322,32 @@ class MainScreen(Screen):
         else:
             puzz.complete = True
             return False
+
+    def makeOutline(self, hist): # does not show up for first hint
+        cat = hist["category"]
+        cause = hist["cause"]
+        if cat == "Cell":
+            self.outlineAlpha = 0
+        elif cat == "Row":
+            self.outlineWidth = 9
+            self.outlineHeight = 1
+            self.outlineAlpha = 1
+            self.outlineRow = cause[0][0] + 1
+            self.outlineColumn = 0
+        elif cat == "Column":
+            self.outlineWidth = 1
+            self.outlineHeight = 9
+            self.outlineAlpha = 1
+            self.outlineRow = 9
+            self.outlineColumn = cause[0][1]
+        elif cat == "Block": #Fix this to find the location of the block
+            self.outlineWidth = 3
+            self.outlineHeight = 3
+            self.outlineAlpha = 1
+            self.outlineRow = 9
+            self.outlineColumn = 0
+        # TODO take a history object, based on the "category" and "cause" values find the corners that encapsulate a rectangle around the proper cells.
+        pass
 
 class HelperSudoku(GridLayout):
     def __init__(self, **kwargs):

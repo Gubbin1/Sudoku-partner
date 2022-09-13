@@ -184,7 +184,7 @@ def nakedSingle(puzz):
     for i in range(9):
         for j in range(9):
             if len(puzz.cells[i][j].poss) == 1:
-                info = history("Naked Single", (i, j), [], puzz.cells[i][j].poss[0], "Cell")
+                info = history("Naked Single", [(i, j)], [], puzz.cells[i][j].poss[0], "Cell")
                 return [True, info]
     return [False]
 # Checks rows, columns, and blocks for cells where there is only one possible place for a given value
@@ -214,15 +214,15 @@ def searchHiddenSingles(category, puzz):
     for group in category:
         for n in puzz.nums:
             count = 0
-            found = None
+            found = []
             for i in range(9):
                 if n == puzz.index(group[i]).value or count > 1:
                     break
                 if n in puzz.index(group[i]).poss:
                     count += 1
-                    found = group[i]
+                    found.append(group[i])
             if count == 1:
-                puzz.cells[found[0]][found[1]].value = n
+                puzz.cells[found[0][0]][found[0][1]].value = n
                 return [True, found, n]
     return [False]
 # Looks for places where numbers occuring in a block all exist in the same row or column, allowing for eliminations in the remainder of the row or column
