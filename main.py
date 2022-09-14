@@ -15,7 +15,7 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.clock import Clock
 from methods import *
 
-#TODO add rectangle that shows the "category" in question, finish example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
+#TODO finish example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
 
 sudoku_toggles = []
 selection_buttons = []
@@ -291,6 +291,7 @@ class MainScreen(Screen):
         self.ids.possDisplay.pos_hint = {'right': 0}
         self.ids.historyDisplay.text = ""
         self.ids.helpMe.disabled = True
+        self.outlineAlpha = 0
         step = 0
         self.ids.historySlider.disabled = True
         self.ids.historyDisplay.clear_widgets()
@@ -341,11 +342,15 @@ class MainScreen(Screen):
             self.outlineRow = 9
             self.outlineColumn = cause[0][1]
         elif cat == "Block": #Fix this to find the location of the block
+            blockSource = {"tl" : (0, 3), "tm": (3, 3), "tr": (6, 3), "ml": (0, 6), "mm": (3, 6), "mr": (6, 6), "bl": (0, 9), "bm": (3, 9), "br": (6, 9)}
+            b = puzz.index(cause[0]).block
             self.outlineWidth = 3
             self.outlineHeight = 3
             self.outlineAlpha = 1
-            self.outlineRow = 9
-            self.outlineColumn = 0
+            self.outlineRow = blockSource[b][1]
+            self.outlineColumn = blockSource[b][0]
+        else:
+            self.outlineAlpha = 0
         # TODO take a history object, based on the "category" and "cause" values find the corners that encapsulate a rectangle around the proper cells.
         pass
 
@@ -389,7 +394,7 @@ class SudokuButtons(GridLayout):
                     self.add_widget(b)
                 if j < 2:
                     self.add_widget(columnSpacer)
-            if (i + 1) % 3 == 0:
+            if i == 2 or i == 5:
                 for a in range(11):
                     rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
                     self.add_widget(rowSpacer)
