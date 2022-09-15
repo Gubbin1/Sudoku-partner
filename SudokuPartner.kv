@@ -111,6 +111,10 @@
 <HelpScreen>:
     on_pre_enter: root.chooseHint(app.main.ids.historySlider.value)
     BoxLayout:
+        canvas.before:
+            Rectangle:
+                size: self.size
+                source: 'images/help_bg_gradient.jpg'
         orientation: "vertical"
         Label:
             size_hint_y: .05

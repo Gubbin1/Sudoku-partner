@@ -144,7 +144,10 @@ class MainScreen(Screen):
                     position += 1
 
     def run_solver(self, button):
+        # First press updates cells possible values based on entered info.
+        # Second and on generates new hints
         global step
+        clues = []
         if button.text == "Lock in puzzle":
             solvable = self.checkSolvable(puzz)
             if not solvable[0]:
@@ -157,11 +160,16 @@ class MainScreen(Screen):
                         puzz.cells[i][j].entryButton.color = [0, 0, 0, 1]
                         puzz.cells[i][j].poss.clear()
                         puzz.cells[i][j].updateRelated(puzz)
+                        clues.append((i, j))
             button.text = "Get Hint"
             self.gameState = "Hints"
             self.ids.helpMe.disabled = False
             self.ids.entryGrid.pos_hint = {'right': 0}
             self.ids.possDisplay.pos_hint = {'right': .75}
+            firstStep = history("Lock in", clues, [], "", "Enter Clues")
+            solveHistory.append(firstStep.record)
+            self.addHistory()
+            step += 1
         elif puzz.remaining > 0:
             move = findNextMove(puzz)
             if move[0]:
@@ -280,6 +288,10 @@ class MainScreen(Screen):
             puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
         elif move == "Simple Coloring":
             puzz.colorIn((cause, [0, 0, 1, 1]), (effect, [1, 1, 0, 1]))
+        elif move == "Lock in":
+            for i in range(9):
+                for j in range(9):
+                    puzz.cells[i][j].entryButton.background_color = (1, 1, 1, 1)
 
     def reset(self, button):
         global puzz
@@ -324,12 +336,10 @@ class MainScreen(Screen):
             puzz.complete = True
             return False
 
-    def makeOutline(self, hist): # does not show up for first hint
+    def makeOutline(self, hist):
         cat = hist["category"]
         cause = hist["cause"]
-        if cat == "Cell":
-            self.outlineAlpha = 0
-        elif cat == "Row":
+        if cat == "Row":
             self.outlineWidth = 9
             self.outlineHeight = 1
             self.outlineAlpha = 1
@@ -341,7 +351,7 @@ class MainScreen(Screen):
             self.outlineAlpha = 1
             self.outlineRow = 9
             self.outlineColumn = cause[0][1]
-        elif cat == "Block": #Fix this to find the location of the block
+        elif cat == "Block":
             blockSource = {"tl" : (0, 3), "tm": (3, 3), "tr": (6, 3), "ml": (0, 6), "mm": (3, 6), "mr": (6, 6), "bl": (0, 9), "bm": (3, 9), "br": (6, 9)}
             b = puzz.index(cause[0]).block
             self.outlineWidth = 3
@@ -351,8 +361,6 @@ class MainScreen(Screen):
             self.outlineColumn = blockSource[b][0]
         else:
             self.outlineAlpha = 0
-        # TODO take a history object, based on the "category" and "cause" values find the corners that encapsulate a rectangle around the proper cells.
-        pass
 
 class HelperSudoku(GridLayout):
     def __init__(self, **kwargs):
@@ -409,14 +417,10 @@ class SudokuButtons(GridLayout):
 class EntryLayout(RelativeLayout):
     def __init__(self,**kwargs):
         super(EntryLayout,self).__init__(**kwargs)
-        
-    # First press updates cells possible values based on entered info.
-    # Second and on generates new hints
 
 class HistoryScroll(StackLayout):
     def __init__(self,**kwargs):
-        super(HistoryScroll,self).__init__(**kwargs)
-        
+        super(HistoryScroll,self).__init__(**kwargs)       
 
 class HistoryLabel(Label):
     def __init__(self,**kwargs):
@@ -614,6 +618,7 @@ class HelpScreen(Screen):
             "Naked Single" : "The highlighted cell has only one possible answer.",
             "Hidden Single" : "The highlighted cell is the only cell in its group able to be the given value.",
             "Fill In" : "The cell has been filled, which tells us the other cells that it sees can no longer have the same value.",
+            "Lock in": "A valid sudoku puzzle has only one solution.",
             "Pointer": "The value must be in one of the BLUE cells in the block, which means that the value cannot be in any of the related YELLOW cells.",
             "Locked Candidate": "1 cannot appear in any of the RED cells, therefore it must occur in one of the BLUE cells, and can be eliminated from the YELLOW cells.",
             "Naked Pair": "The BLUE cells share a pair of possibilities, meaning one of them must be one of the values, while the other must be the other value. This means these two possibilities can be eliminated from all of the YELLOW cells.",
@@ -624,7 +629,7 @@ class HelpScreen(Screen):
             "Y wing": "The BLUE cells share a trio of options in such a way that we know that any cell that can see all three of them cannot have one of those options.",
             "Simple Coloring": "By following a chain of cells that rely on eachother, alternating their color, we can see that there are some cells which will be eliminated whether the chain winds up as blue or red, therefore that value can be eliminated from them."}
 
-        if rule == "Fill In":
+        if rule == "Fill In" or rule == "Lock in":
             self.ids.explainer.text = explanations[rule]
             return
 
@@ -642,6 +647,5 @@ class SudokuPartnerApp(App):
         self.sm.add_widget(self.help)
 
         return self.sm
-
 
 SudokuPartnerApp().run()
