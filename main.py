@@ -13,9 +13,11 @@ from kivy.properties import NumericProperty
 from kivy.uix.label import Label
 from kivy.uix.togglebutton import ToggleButton
 from kivy.clock import Clock
+from kivy.core.window import Window
+from kivy import platform
 from methods import *
 
-#TODO finish example puzzles to Help screen, possibly add "possible" numbers to cells, enable keyboard entry of numbers, more rules?
+#TODO for invalid checker highlight improper cells (possibly check for invalid before locking in puzzle), finish example puzzles to Help screen, possibly add "possible" numbers to cells, more rules?
 
 sudoku_toggles = []
 selection_buttons = []
@@ -89,6 +91,10 @@ class MainScreen(Screen):
         self.gameState = "Entry"
         self.ids.historySlider.bind(value = self.displayHistory)
         
+        if self.is_desktop():
+            self._keyboard = Window.request_keyboard(self.keyboard_closed, self)
+            self._keyboard.bind(on_key_down=self.on_keyboard_down)
+
     # Makes sure only one cell is selected at a time
     def switch_active(self, togglebutton):
         tb = togglebutton
@@ -361,6 +367,35 @@ class MainScreen(Screen):
             self.outlineColumn = blockSource[b][0]
         else:
             self.outlineAlpha = 0
+
+    def is_desktop(self):
+            if platform in ('linux', 'win', 'macosx'):
+                return True
+            return False
+
+    def keyboard_closed(self):
+        self._keyboard.unbind(on_key_down=self.on_keyboard_down)
+        self._keyboard.unbind(on_key_up=self.on_keyboard_up)
+        self._keyboard = None
+    
+    def on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        valid = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "numpad1", "numpad2", "numpad3", "numpad4", "numpad5", "numpad6", "numpad7", "numpad8", "numpad9"]
+        pressed = ""
+        if keycode[1] in valid:
+            if len(keycode[1]) > 2:
+                pressed = keycode[1][-1]
+            else:
+                pressed = keycode[1]
+            for c in sudoku_toggles:
+                if c.state == "down":
+                    c.text = pressed
+                    c.state = "normal"
+                    for butt in selection_buttons:
+                        butt.disabled = True
+                    return
+            for butt in selection_buttons:
+                butt.disabled = True
+        return True
 
 class HelperSudoku(GridLayout):
     def __init__(self, **kwargs):
@@ -647,5 +682,9 @@ class SudokuPartnerApp(App):
         self.sm.add_widget(self.help)
 
         return self.sm
+
+    
+
+        
 
 SudokuPartnerApp().run()
