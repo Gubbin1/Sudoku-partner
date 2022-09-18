@@ -17,7 +17,8 @@ from kivy.core.window import Window
 from kivy import platform
 from methods import *
 
-#TODO for invalid checker highlight improper cells (possibly check for invalid before locking in puzzle), finish example puzzles to Help screen, possibly add "possible" numbers to cells, more rules?
+# TODO possibly check for invalid before locking in puzzle, enable delete key to erase cells
+#  finish example puzzles to Help screen, possibly add "possible" numbers to cells, more rules?
 
 sudoku_toggles = []
 selection_buttons = []
@@ -29,54 +30,54 @@ SolveSpeed = .03
 helper_buttons = []
 
 easyExample = (6, 8, 0, 0, 0, 0, 0, 1, 7,
-                0, 0, 5, 0, 0, 3, 0, 0, 0,
-                0, 0, 0, 0, 7, 0, 6, 5, 0,
-                0, 0, 0, 4, 3, 0, 0, 0, 8,
-                3, 9, 8, 7, 2, 0, 4, 6, 0,
-                0, 6, 7, 5, 9, 0, 1, 2, 3,
-                5, 3, 0, 0, 0, 7, 2, 0, 0,
-                0, 0, 0, 0, 6, 0, 0, 0, 1,
-                0, 4, 6, 0, 8, 2, 0, 0, 0)
+               0, 0, 5, 0, 0, 3, 0, 0, 0,
+               0, 0, 0, 0, 7, 0, 6, 5, 0,
+               0, 0, 0, 4, 3, 0, 0, 0, 8,
+               3, 9, 8, 7, 2, 0, 4, 6, 0,
+               0, 6, 7, 5, 9, 0, 1, 2, 3,
+               5, 3, 0, 0, 0, 7, 2, 0, 0,
+               0, 0, 0, 0, 6, 0, 0, 0, 1,
+               0, 4, 6, 0, 8, 2, 0, 0, 0)
 
 mediumExample = (4, 8, 0, 0, 0, 0, 5, 0, 0,
-                0, 0, 0, 5, 4, 8, 3, 9, 7,
-                0, 0, 0, 0, 0, 0, 8, 0, 0,
-                0, 0, 4, 1, 8, 0, 2, 3, 0,
-                0, 0, 8, 0, 0, 6, 0, 0, 0,
-                0, 5, 0, 0, 7, 3, 0, 0, 8,
-                0, 7, 2, 3, 0, 9, 0, 0, 0,
-                0, 0, 3, 0, 0, 0, 0, 2, 5,
-                0, 0, 0, 0, 6, 2, 9, 0, 3)
+                 0, 0, 0, 5, 4, 8, 3, 9, 7,
+                 0, 0, 0, 0, 0, 0, 8, 0, 0,
+                 0, 0, 4, 1, 8, 0, 2, 3, 0,
+                 0, 0, 8, 0, 0, 6, 0, 0, 0,
+                 0, 5, 0, 0, 7, 3, 0, 0, 8,
+                 0, 7, 2, 3, 0, 9, 0, 0, 0,
+                 0, 0, 3, 0, 0, 0, 0, 2, 5,
+                 0, 0, 0, 0, 6, 2, 9, 0, 3)
 
 hardExample = (0, 0, 0, 0, 6, 0, 4, 2, 0,
-                5, 0, 0, 0, 0, 7, 0, 8, 0, 
-                0, 0, 7, 0, 0, 0, 0, 0, 0, 
-                6, 1, 0, 0, 0, 0, 5, 0, 0, 
-                0, 0, 0, 0, 8, 0, 0, 3, 0, 
-                0, 5, 8, 0, 0, 9, 0, 0, 0,
-                4, 0, 0, 0, 2, 0, 0, 0, 0,
-                0, 0, 1, 4, 0, 0, 0, 0, 6,
-                2, 0, 6, 0, 0, 0, 0, 0, 9)
+               5, 0, 0, 0, 0, 7, 0, 8, 0,
+               0, 0, 7, 0, 0, 0, 0, 0, 0,
+               6, 1, 0, 0, 0, 0, 5, 0, 0,
+               0, 0, 0, 0, 8, 0, 0, 3, 0,
+               0, 5, 8, 0, 0, 9, 0, 0, 0,
+               4, 0, 0, 0, 2, 0, 0, 0, 0,
+               0, 0, 1, 4, 0, 0, 0, 0, 6,
+               2, 0, 6, 0, 0, 0, 0, 0, 9)
 
 expertExample = (0, 9, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 1, 9, 0, 3, 0, 7,
-                0, 0, 0, 8, 0, 0, 0, 0, 0,
-                0, 0, 5, 0, 7, 0, 0, 0, 9,
-                0, 0, 0, 4, 0, 0, 0, 8, 1,
-                0, 2, 0, 0, 0, 0, 0, 7, 0,
-                0, 7, 0, 0, 0, 4, 0, 0, 0,
-                0, 0, 0, 2, 5, 0, 0, 4, 0,
-                5, 0, 9, 0, 0, 3, 0, 2, 0)
+                 0, 0, 0, 1, 9, 0, 3, 0, 7,
+                 0, 0, 0, 8, 0, 0, 0, 0, 0,
+                 0, 0, 5, 0, 7, 0, 0, 0, 9,
+                 0, 0, 0, 4, 0, 0, 0, 8, 1,
+                 0, 2, 0, 0, 0, 0, 0, 7, 0,
+                 0, 7, 0, 0, 0, 4, 0, 0, 0,
+                 0, 0, 0, 2, 5, 0, 0, 4, 0,
+                 5, 0, 9, 0, 0, 3, 0, 2, 0)
 
 evilExample = (0, 0, 0, 6, 0, 0, 0, 8, 0,
-                0, 4, 0, 0, 0, 0, 0, 2, 0,
-                5, 0, 0, 0, 9, 0, 4, 0, 6,
-                0, 5, 0, 2, 0, 0, 7, 0, 1,
-                9, 0, 0, 0, 0, 3, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 4, 0,
-                0, 0, 1, 0, 2, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 8,
-                0, 7, 0, 1, 0, 0, 6, 0, 5)
+               0, 4, 0, 0, 0, 0, 0, 2, 0,
+               5, 0, 0, 0, 9, 0, 4, 0, 6,
+               0, 5, 0, 2, 0, 0, 7, 0, 1,
+               9, 0, 0, 0, 0, 3, 0, 0, 0,
+               0, 0, 0, 0, 0, 0, 0, 4, 0,
+               0, 0, 1, 0, 2, 0, 0, 0, 0,
+               0, 0, 0, 0, 0, 0, 0, 0, 8,
+               0, 7, 0, 1, 0, 0, 6, 0, 5)
 
 
 class MainScreen(Screen):
@@ -85,12 +86,13 @@ class MainScreen(Screen):
     outlineHeight = NumericProperty(1)
     outlineRow = NumericProperty(1)
     outlineAlpha = NumericProperty(0)
+
     def __init__(self, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
         self.Message = "Enter your puzzle"
         self.gameState = "Entry"
-        self.ids.historySlider.bind(value = self.displayHistory)
-        
+        self.ids.historySlider.bind(value=self.displayHistory)
+
         if self.is_desktop():
             self._keyboard = Window.request_keyboard(self.keyboard_closed, self)
             self._keyboard.bind(on_key_down=self.on_keyboard_down)
@@ -158,6 +160,7 @@ class MainScreen(Screen):
             solvable = self.checkSolvable(puzz)
             if not solvable[0]:
                 self.ids.cellData.text = solvable[1]
+                puzz.colorIn((solvable[2], [1, 0, 0, 1]))
                 return
             for i in range(9):
                 for j in range(9):
@@ -194,10 +197,10 @@ class MainScreen(Screen):
 
     def addHistory(self):
         message = solveHistory[step]['method']
-        newLabel = HistoryLabel(text = message)
+        newLabel = HistoryLabel(text=message)
         newLabel.stepCount = step
-        self.ids.historyDisplay.add_widget(newLabel) 
-    
+        self.ids.historyDisplay.add_widget(newLabel)
+
     def displayHistory(self, slider, value):
         # Move historyDisplay to match the value of the slider
         self.ids.historyDisplay.pos_hint['top'] = (int(value) + 2.5) * .2
@@ -218,14 +221,14 @@ class MainScreen(Screen):
                         myCell = solveHistory[i]["cause"]
                         puzz.cells[myCell[0]][myCell[1]].entryButton.color = (1, 1, 1, 0)
         self.makeOutline(solveHistory[int(value)])
-    
-    def checkSolvable(self, puzz):   
+
+    def checkSolvable(self, puzz):
         for i in range(9):
             for j in range(9):
                 if puzz.cells[i][j].entryButton.text != "":
                     puzz.remaining -= 1
         if puzz.remaining > 64:
-            return [False, "Not enough starting clues.",[]]
+            return [False, "Not enough starting clues.", []]
         for group in puzz.cells:
             numCount = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0}
             for box in group:
@@ -247,7 +250,7 @@ class MainScreen(Screen):
                 if numCount[n] > 1:
                     found = []
                     for j in range(9):
-                        if puzz.cells.entryButton.text == n:
+                        if puzz.cells[j][i].entryButton.text == n:
                             found.append((j, i))
                     return [False, f"Please enter only one {n} per column.", found]
         for key in puzz.blockKeys:
@@ -311,6 +314,7 @@ class MainScreen(Screen):
         self.ids.helpMe.disabled = True
         self.outlineAlpha = 0
         step = 0
+        self.ids.cellData.text = "Enter a new puzzle"
         self.ids.historySlider.disabled = True
         self.ids.historyDisplay.clear_widgets()
         solveHistory.clear()
@@ -327,7 +331,7 @@ class MainScreen(Screen):
         self.ids.helpMe.disabled = False
         self.ids.historySlider.disabled = False
         Clock.schedule_interval(self.next, SolveSpeed)
-    
+
     def next(self, dt):
         global step
         move = findNextMove(puzz)
@@ -358,7 +362,8 @@ class MainScreen(Screen):
             self.outlineRow = 9
             self.outlineColumn = cause[0][1]
         elif cat == "Block":
-            blockSource = {"tl" : (0, 3), "tm": (3, 3), "tr": (6, 3), "ml": (0, 6), "mm": (3, 6), "mr": (6, 6), "bl": (0, 9), "bm": (3, 9), "br": (6, 9)}
+            blockSource = {"tl": (0, 3), "tm": (3, 3), "tr": (6, 3), "ml": (0, 6), "mm": (3, 6), "mr": (6, 6),
+                           "bl": (0, 9), "bm": (3, 9), "br": (6, 9)}
             b = puzz.index(cause[0]).block
             self.outlineWidth = 3
             self.outlineHeight = 3
@@ -369,23 +374,24 @@ class MainScreen(Screen):
             self.outlineAlpha = 0
 
     def is_desktop(self):
-            if platform in ('linux', 'win', 'macosx'):
-                return True
-            return False
+        if platform in ('linux', 'win', 'macosx'):
+            return True
+        return False
 
     def keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self.on_keyboard_down)
         self._keyboard.unbind(on_key_up=self.on_keyboard_up)
         self._keyboard = None
-    
+
     def on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        valid = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "numpad1", "numpad2", "numpad3", "numpad4", "numpad5", "numpad6", "numpad7", "numpad8", "numpad9"]
-        pressed = ""
-        if keycode[1] in valid:
-            if len(keycode[1]) > 2:
+        valid = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "numpad1", "numpad2", "numpad3", "numpad4", "numpad5",
+                 "numpad6", "numpad7", "numpad8", "numpad9", "backspace"]
+        pressed = keycode[1]
+        if pressed in valid:
+            if pressed[0] == "n":
                 pressed = keycode[1][-1]
-            else:
-                pressed = keycode[1]
+            elif pressed[0] == "b":
+                pressed = ""
             for c in sudoku_toggles:
                 if c.state == "down":
                     c.text = pressed
@@ -397,14 +403,15 @@ class MainScreen(Screen):
                 butt.disabled = True
         return True
 
+
 class HelperSudoku(GridLayout):
     def __init__(self, **kwargs):
         super(HelperSudoku, self).__init__(**kwargs)
         spaceWidth = 3
         for i in range(9):
-            rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
+            rowSpacer = Label(size_hint=(0, None), height=spaceWidth)
             for j in range(3):
-                columnSpacer = Label(size_hint = (None, 0), width = spaceWidth)
+                columnSpacer = Label(size_hint=(None, 0), width=spaceWidth)
                 for k in range(3):
                     b = Button()
                     helper_buttons.append(b)
@@ -413,7 +420,7 @@ class HelperSudoku(GridLayout):
                     self.add_widget(columnSpacer)
             if (i + 1) % 3 == 0:
                 for a in range(11):
-                    rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
+                    rowSpacer = Label(size_hint=(0, None), height=spaceWidth)
                     self.add_widget(rowSpacer)
         count = 0
         for i in range(9):
@@ -422,15 +429,16 @@ class HelperSudoku(GridLayout):
                 helperPuzz.cells[i][j] = newCell
                 count += 1
 
+
 class SudokuButtons(GridLayout):
     # Creates cells and fills cell array
     def __init__(self, **kwargs):
         super(SudokuButtons, self).__init__(**kwargs)
         spaceWidth = 3
         for i in range(9):
-            rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
+            rowSpacer = Label(size_hint=(0, None), height=spaceWidth)
             for j in range(3):
-                columnSpacer = Label(size_hint = (None, 0), width = spaceWidth)
+                columnSpacer = Label(size_hint=(None, 0), width=spaceWidth)
                 for k in range(3):
                     b = ToggleButton()
                     sudoku_toggles.append(b)
@@ -439,7 +447,7 @@ class SudokuButtons(GridLayout):
                     self.add_widget(columnSpacer)
             if i == 2 or i == 5:
                 for a in range(11):
-                    rowSpacer = Label(size_hint = (0, None), height = spaceWidth)
+                    rowSpacer = Label(size_hint=(0, None), height=spaceWidth)
                     self.add_widget(rowSpacer)
         count = 0
         for i in range(9):
@@ -447,19 +455,21 @@ class SudokuButtons(GridLayout):
                 newCell = cell(i, j, sudoku_toggles[count])
                 puzz.cells[i][j] = newCell
                 count += 1
-    
-    
+
+
 class EntryLayout(RelativeLayout):
-    def __init__(self,**kwargs):
-        super(EntryLayout,self).__init__(**kwargs)
+    def __init__(self, **kwargs):
+        super(EntryLayout, self).__init__(**kwargs)
+
 
 class HistoryScroll(StackLayout):
-    def __init__(self,**kwargs):
-        super(HistoryScroll,self).__init__(**kwargs)       
+    def __init__(self, **kwargs):
+        super(HistoryScroll, self).__init__(**kwargs)
+
 
 class HistoryLabel(Label):
-    def __init__(self,**kwargs):
-        super(HistoryLabel,self).__init__(**kwargs)
+    def __init__(self, **kwargs):
+        super(HistoryLabel, self).__init__(**kwargs)
         self.stepCount = None
 
     def updateOpacity(self, stepN):
@@ -477,9 +487,10 @@ class HistoryLabel(Label):
         else:
             opacity = 0
             background = (1, 1, 1, 0)
-        
+
         self.background_color = background
         self.color = [1, 1, 1, opacity]
+
 
 class OptionGrid(GridLayout):
     # Creates option selection buttons
@@ -489,14 +500,18 @@ class OptionGrid(GridLayout):
             title = "Erase"
             if i > 0:
                 title = str(i)
-            b = Button(text=title, disabled = True, on_press = self.num_entry)
+            b = Button(text=title, disabled=True, on_press=self.num_entry)
             selection_buttons.append(b)
             self.add_widget(b)
+
     # Enters writes option to selected cell
     def num_entry(self, button):
         for c in sudoku_toggles:
             if c.state == "down":
-                c.text = button.text
+                if len(button.text) > 2:
+                    c.text = ""
+                else:
+                    c.text = button.text
                 c.state = "normal"
                 for butt in selection_buttons:
                     butt.disabled = True
@@ -504,41 +519,48 @@ class OptionGrid(GridLayout):
         for butt in selection_buttons:
             butt.disabled = True
 
+
 class HelpScreen(Screen):
     def __init__(self, **kwargs):
         super(HelpScreen, self).__init__(**kwargs)
         self.colorExamples = {
             "Naked Single": [([(0, 4)], (0, 1, 0, 1))],
             "Hidden Single": [([(4, 4)], (0, 1, 0, 1))],
-            "Pointer": [([(0, 4), (1, 4), (2, 4)], (0, 0, 1, 1)),([(3, 4), (4, 4), (5, 4), (6, 4), (7, 4), (8, 4)], (1, 1, 0, 1))],
-            "Locked Candidate": [([(1, 6), (1, 7), (1, 8)], (0, 0, 1, 1)),([(0, 7), (2, 6), (2, 7)], (1, 1, 0, 1)),([(1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)],(1, 0, 0, 1))],
-            "Naked Pair": [([(0, 0), (0, 1)], (0, 0, 1, 1)), ([(1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)], (1, 1, 0, 1))],
+            "Pointer": [([(0, 4), (1, 4), (2, 4)], (0, 0, 1, 1)),
+                        ([(3, 4), (4, 4), (5, 4), (6, 4), (7, 4), (8, 4)], (1, 1, 0, 1))],
+            "Locked Candidate": [([(1, 6), (1, 7), (1, 8)], (0, 0, 1, 1)), ([(0, 7), (2, 6), (2, 7)], (1, 1, 0, 1)),
+                                 ([(1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)], (1, 0, 0, 1))],
+            "Naked Pair": [([(0, 0), (0, 1)], (0, 0, 1, 1)),
+                           ([(1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)], (1, 1, 0, 1))],
             "Hidden Pair": [([(0, 0), (0, 1)], (0, 0, 1, 1))],
-            "Naked Triple": [([(4, 3), (4, 4), (4, 5)], (0, 0, 1, 1)), ([(3, 3), (3, 4), (3, 5), (5, 3), (5, 4), (5, 5)], (1, 1, 0, 1))],
+            "Naked Triple": [([(4, 3), (4, 4), (4, 5)], (0, 0, 1, 1)),
+                             ([(3, 3), (3, 4), (3, 5), (5, 3), (5, 4), (5, 5)], (1, 1, 0, 1))],
             "Hidden Triple": [([(0, 0), (0, 1), (0, 2)], (0, 1, 0, 1))],
-            "X wing": [([(2, 3), (2, 7), (6, 3), (6, 7)], (0, 0, 1, 1)), ([(0, 3), (1, 3), (3, 3), (4, 3), (5, 3), (7, 3), (8, 3), (0, 7), (1, 7), (3, 7), (4, 7), (5, 7), (7, 7), (8, 7)], (1, 1, 0, 1))],
+            "X wing": [([(2, 3), (2, 7), (6, 3), (6, 7)], (0, 0, 1, 1)), (
+            [(0, 3), (1, 3), (3, 3), (4, 3), (5, 3), (7, 3), (8, 3), (0, 7), (1, 7), (3, 7), (4, 7), (5, 7), (7, 7),
+             (8, 7)], (1, 1, 0, 1))],
             "Y wing": [([(0, 0)], (0, 0, 1, 1)), ([(0, 1)], (1, 1, 0, 1))],
             "Simple Coloring": [([(0, 0)], (1, 0, 0, 1)), ([(0, 1)], (0, 0, 1, 1)), ([(0, 2)], (1, 1, 0, 1))]
-            }
+        }
         self.examplePuzzles = {
             "Naked Single": (1, 2, 3, 4, 0, 6, 7, 8, 9,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0),
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0),
             "Hidden Single": (0, 0, 0, 1, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            1, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 1,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 1, 0, 0, 0),
+                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              1, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 1,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 1, 0, 0, 0),
             "Pointer": (0, 0, 0, 1, 0, 7, 0, 0, 0,
                         0, 0, 0, 2, 0, 8, 0, 0, 0,
                         0, 0, 0, 3, 0, 9, 0, 0, 0,
@@ -549,23 +571,23 @@ class HelpScreen(Screen):
                         0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0),
             "Locked Candidate": (0, 2, 0, 4, 5, 0, 7, 0, 9,
-                                9, 0, 5, 0, 2, 3, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 0, 0, 2, 
-                                0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 1, 0, 0 ,0, 0, 0,
-                                0, 1, 0, 0, 0, 0, 0, 0, 0),
+                                 9, 0, 5, 0, 2, 3, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 2,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 1, 0, 0, 0, 0, 0,
+                                 0, 1, 0, 0, 0, 0, 0, 0, 0),
             "Naked Pair": (0, 0, 3, 4, 5, 6, 7, 8, 9,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0 ,0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0),
+                           0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0),
             "Hidden Pair": (0, 0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 1, 2, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 1, 2, 0,
@@ -573,44 +595,44 @@ class HelpScreen(Screen):
                             0, 0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 1, 0, 0, 0, 0, 0, 0,
-                            0, 0, 2, 0, 0, 0, 0, 0, 0, 
+                            0, 0, 2, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0, 0),
             "Naked Triple": (0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            4, 5, 6, 0, 0, 0, 7, 8, 9,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                            0, 0, 0, 0, 0, 0, 0, 0, 0),
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             4, 5, 6, 0, 0, 0, 7, 8, 9,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0),
             "Hidden Triple": (0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 1, 2, 3, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 1, 2, 3,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                            0, 0, 0, 0, 0, 0, 0, 0, 0),
-            "X wing": (0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        2, 3, 4, 0, 5, 6, 7, 0, 8,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        9, 8, 7, 0, 6, 5, 4, 0, 3,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0),
+                              0, 0, 0, 1, 2, 3, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 1, 2, 3,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0),
+            "X wing": (0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       2, 3, 4, 0, 5, 6, 7, 0, 8,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       9, 8, 7, 0, 6, 5, 4, 0, 3,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0),
             "Y wing": (0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                        0, 0, 0, 0, 0, 0, 0, 0, 0),
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0),
             "Simple Coloring": (0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -618,10 +640,10 @@ class HelpScreen(Screen):
                                 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                                0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0)
-                            }
-    
+        }
+
     def cleanPuzz(self):
         for i in range(9):
             for j in range(9):
@@ -639,9 +661,9 @@ class HelpScreen(Screen):
                 else:
                     helperPuzz.cells[i][j].entryButton.text = ""
                 position += 1
-        for set in colorGuide:
-            for colorme in set[0]:
-                helperPuzz.cells[colorme[0]][colorme[1]].entryButton.background_color = set[1]
+        for bunch in colorGuide:
+            for colorme in bunch[0]:
+                helperPuzz.cells[colorme[0]][colorme[1]].entryButton.background_color = bunch[1]
 
     def chooseHint(self, value):
         if len(solveHistory) == 0:
@@ -650,9 +672,9 @@ class HelpScreen(Screen):
         rule = solveHistory[int(value)]['method']
 
         explanations = {
-            "Naked Single" : "The highlighted cell has only one possible answer.",
-            "Hidden Single" : "The highlighted cell is the only cell in its group able to be the given value.",
-            "Fill In" : "The cell has been filled, which tells us the other cells that it sees can no longer have the same value.",
+            "Naked Single": "The highlighted cell has only one possible answer.",
+            "Hidden Single": "The highlighted cell is the only cell in its group able to be the given value.",
+            "Fill In": "The cell has been filled, which tells us the other cells that it sees can no longer have the same value.",
             "Lock in": "A valid sudoku puzzle has only one solution.",
             "Pointer": "The value must be in one of the BLUE cells in the block, which means that the value cannot be in any of the related YELLOW cells.",
             "Locked Candidate": "1 cannot appear in any of the RED cells, therefore it must occur in one of the BLUE cells, and can be eliminated from the YELLOW cells.",
@@ -669,22 +691,20 @@ class HelpScreen(Screen):
             return
 
         self.fillHelper(rule)
-        
+
         self.ids.explainer.text = explanations[rule]
+
 
 class SudokuPartnerApp(App):
     def build(self):
         self.sm = ScreenManager()
-        self.main = MainScreen(name = 'mainscreen')
+        self.main = MainScreen(name='mainscreen')
         self.sm.add_widget(self.main)
 
-        self.help = HelpScreen(name = 'helpscreen')
+        self.help = HelpScreen(name='helpscreen')
         self.sm.add_widget(self.help)
 
         return self.sm
 
-    
-
-        
 
 SudokuPartnerApp().run()

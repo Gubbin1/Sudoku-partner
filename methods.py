@@ -1,5 +1,6 @@
 def findNextMove(puzz):
-    fl = [fillGreen, nakedSingle, hiddenSingle, nakedPairs, lockedCandidate, pointingTuple, hiddenPairs, nakedTriples, hiddenTriples, Xwing, Ywing, simpleColoring]
+    fl = [fillGreen, nakedSingle, hiddenSingle, nakedPairs, lockedCandidate, pointingTuple, hiddenPairs, nakedTriples,
+          hiddenTriples, Xwing, Ywing, simpleColoring]
     check = None
     # Moves through methods in order of complexity, if progress is made return with the information.
     for f in fl:
@@ -787,7 +788,7 @@ def findChains(n, puzz):
                             for link in chainHolder:
                                 cellInfo[link]['chained'] = True
                             chains.append(chainHolder)
-    # color the first cell in the list "r", then loop through all the cells in the list, if they see each other mark them as the alternate color.
+    # Color the first cell in the list "r", then loop through all the cells in the list, if they see each other mark them as the alternate color.
     if len(chains) == 0:
         return False
     for linked in chains:
