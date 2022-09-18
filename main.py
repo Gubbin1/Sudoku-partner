@@ -17,7 +17,7 @@ from kivy.core.window import Window
 from kivy import platform
 from methods import *
 
-# TODO enable delete key to erase cells, finish example puzzles, add "possible" numbers to cells, more rules?
+# TODO finish example puzzles, add "possible" numbers to cells, more rules?
 
 sudoku_toggles = []
 selection_buttons = []
@@ -384,12 +384,13 @@ class MainScreen(Screen):
 
     def on_keyboard_down(self, keyboard, keycode, text, modifiers):
         valid = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "numpad1", "numpad2", "numpad3", "numpad4", "numpad5",
-                 "numpad6", "numpad7", "numpad8", "numpad9", "backspace"]
+                 "numpad6", "numpad7", "numpad8", "numpad9", "backspace", "delete"]
         pressed = keycode[1]
+        print(pressed)
         if pressed in valid:
             if pressed[0] == "n":
                 pressed = keycode[1][-1]
-            elif pressed[0] == "b":
+            elif pressed[0] == "b" or pressed[0] == "d":
                 pressed = ""
             for c in sudoku_toggles:
                 if c.state == "down":
