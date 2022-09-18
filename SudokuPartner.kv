@@ -108,6 +108,44 @@
     on_press: app.main.switch_active(self)
 
 
+<Possibles>:
+    Label:
+        text: "1"
+        anchor_x: 'left'
+        anchor_y: 'top'
+    Label:
+        text: "2"
+        anchor_x: 'center'
+        anchor_y: 'top'
+    Label:
+        text: "3"
+        anchor_x: 'right'
+        anchor_y: 'top'
+    Label:
+        text: "4"
+        anchor_x: 'left'
+        anchor_y: 'center'
+    Label:
+        text: "5"
+        anchor_x: 'center'
+        anchor_y: 'center'
+    Label:
+        text: "6"
+        anchor_x: 'right'
+        anchor_y: 'center'
+    Label:
+        text: "7"
+        anchor_x: 'left'
+        anchor_y: 'bottom'
+    Label:
+        text: "8"
+        anchor_x: 'center'
+        anchor_y: 'bottom'
+    Label:
+        text: "9"
+        anchor_x: 'right'
+        anchor_y: 'bottom'
+
 <HelpScreen>:
     on_pre_enter: root.chooseHint(app.main.ids.historySlider.value)
     BoxLayout:

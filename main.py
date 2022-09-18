@@ -17,8 +17,7 @@ from kivy.core.window import Window
 from kivy import platform
 from methods import *
 
-# TODO possibly check for invalid before locking in puzzle, enable delete key to erase cells
-#  finish example puzzles to Help screen, possibly add "possible" numbers to cells, more rules?
+# TODO enable delete key to erase cells, finish example puzzles, add "possible" numbers to cells, more rules?
 
 sudoku_toggles = []
 selection_buttons = []
@@ -428,6 +427,7 @@ class HelperSudoku(GridLayout):
                 newCell = cell(i, j, helper_buttons[count])
                 helperPuzz.cells[i][j] = newCell
                 count += 1
+
 
 
 class SudokuButtons(GridLayout):
