@@ -12,11 +12,12 @@ def findNextMove(puzz):
     return [False, "Sorry, that's as far as I know."]
 
 class Possibles(AnchorLayout):
-    pass
+    def __init__(self, **kwargs):
+        super(Possibles, self).__init__(**kwargs)
 
 # Cells have their position in the cell array, their corresponding button, their possible values, and when answered their actual value.
 class cell(): 
-    def __init__(self, myRow, myColumn, myButton):
+    def __init__(self, myRow, myColumn, myButton, myPossLayout):
         self.row = myRow
         self.column = myColumn
         self.index = (myRow, myColumn)
@@ -24,8 +25,8 @@ class cell():
         self.poss = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
         self.value = None
         self.entryButton = myButton
-        self.possLayout = Possibles()
-        self.entryButton.bind(pos=self.possLayoutPosition)
+        self.possLayout = myPossLayout
+
         if 0 <= self.row < 3 and 0 <= self.column < 3:
             self.block = "tl"
         elif 0 <= self.row < 3 and 2 < self.column < 6:
@@ -45,9 +46,6 @@ class cell():
         elif 5 < self.row < 9 and 5 < self.column < 9:
             self.block = "br"
 
-    def possLayoutPosition(self, x, y):
-        self.possLayout.pos = self.entryButton.pos
-        self.possLayout.size = self.entryButton.size
     # When a cell's answer is found, remove its value from the possibilities of all related cells
     def updateRelated(self, puzz):
         thisRow = self.row

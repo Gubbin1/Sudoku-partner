@@ -12,6 +12,7 @@ from kivy.uix.button import Button
 from kivy.properties import NumericProperty
 from kivy.uix.label import Label
 from kivy.uix.togglebutton import ToggleButton
+from kivy.uix.widget import Widget
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy import platform
@@ -271,7 +272,6 @@ class MainScreen(Screen):
         cause = hist['cause']
         effect = hist['effect']
         num = hist['number']
-        category = hist['category']
         if move == "Fill In":
             puzz.colorIn(([cause], [1, 1, 1, 1]))
         elif move == "Naked Single":
@@ -413,9 +413,9 @@ class HelperSudoku(GridLayout):
             for j in range(3):
                 columnSpacer = Label(size_hint=(None, 0), width=spaceWidth)
                 for k in range(3):
-                    b = Button()
-                    helper_buttons.append(b)
-                    self.add_widget(b)
+                    b = FillableButton()
+                    helper_buttons.append(b.butt)
+                    self.add_widget(b.butt)
                 if j < 2:
                     self.add_widget(columnSpacer)
             if (i + 1) % 3 == 0:
@@ -425,10 +425,17 @@ class HelperSudoku(GridLayout):
         count = 0
         for i in range(9):
             for j in range(9):
-                newCell = cell(i, j, helper_buttons[count])
+                possLayout = Possibles()
+                newCell = cell(i, j, helper_buttons[count], possLayout)
                 helperPuzz.cells[i][j] = newCell
                 count += 1
 
+class FillableButton(Widget):
+    def __init__(self, **kwargs):
+        super(FillableButton, self).__init__(**kwargs)     
+        self.tog = ToggleButton()
+        self.poss = Possibles()
+        self.butt = Button()
 
 
 class SudokuButtons(GridLayout):
@@ -441,9 +448,9 @@ class SudokuButtons(GridLayout):
             for j in range(3):
                 columnSpacer = Label(size_hint=(None, 0), width=spaceWidth)
                 for k in range(3):
-                    b = ToggleButton()
-                    sudoku_toggles.append(b)
-                    self.add_widget(b)
+                    b = FillableButton()
+                    sudoku_toggles.append(b.tog)
+                    self.add_widget(b.tog)
                 if j < 2:
                     self.add_widget(columnSpacer)
             if i == 2 or i == 5:
@@ -453,7 +460,7 @@ class SudokuButtons(GridLayout):
         count = 0
         for i in range(9):
             for j in range(9):
-                newCell = cell(i, j, sudoku_toggles[count])
+                newCell = cell(i, j, sudoku_toggles[count], b.poss)
                 puzz.cells[i][j] = newCell
                 count += 1
 
