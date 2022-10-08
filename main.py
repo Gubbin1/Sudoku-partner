@@ -426,7 +426,7 @@ class HelperSudoku(GridLayout):
         for i in range(9):
             for j in range(9):
                 possLayout = Possibles()
-                newCell = cell(i, j, helper_buttons[count], possLayout)
+                newCell = cell(i, j, helper_buttons[count])
                 helperPuzz.cells[i][j] = newCell
                 count += 1
 
@@ -460,7 +460,7 @@ class SudokuButtons(GridLayout):
         count = 0
         for i in range(9):
             for j in range(9):
-                newCell = cell(i, j, sudoku_toggles[count], b.poss)
+                newCell = cell(i, j, sudoku_toggles[count])
                 puzz.cells[i][j] = newCell
                 count += 1
 

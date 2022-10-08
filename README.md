@@ -1,5 +1,5 @@
 # Sudoku Helper App
-### Video Demo: <url>
+### Video Demo: https://youtu.be/I-S9k-p43vo
 
 ### Description
 Sudoku puzzles consist of a 9x9 grid, which much be filled with digits 1 through 9 appearing only once in every row, column, and 3x3 grid. 

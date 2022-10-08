@@ -17,7 +17,7 @@ class Possibles(AnchorLayout):
 
 # Cells have their position in the cell array, their corresponding button, their possible values, and when answered their actual value.
 class cell(): 
-    def __init__(self, myRow, myColumn, myButton, myPossLayout):
+    def __init__(self, myRow, myColumn, myButton):
         self.row = myRow
         self.column = myColumn
         self.index = (myRow, myColumn)
@@ -25,7 +25,7 @@ class cell():
         self.poss = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
         self.value = None
         self.entryButton = myButton
-        self.possLayout = myPossLayout
+        # self.possLayout = myPossLayout
 
         if 0 <= self.row < 3 and 0 <= self.column < 3:
             self.block = "tl"
