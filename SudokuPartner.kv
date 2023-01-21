@@ -1,0 +1,190 @@
+#:set padsize .1
+<MainScreen>:
+    BoxLayout:
+        canvas.before:
+            Rectangle:
+                size: self.size
+                source: 'images/bg_gradient.jpg'
+        orientation: "vertical"
+        Label:
+            id: cellData
+            size_hint_y: .1
+            text: "Cell Info"
+        BoxLayout:
+            Label:
+                size_hint_x: padsize
+            RelativeLayout:
+                SudokuButtons:
+                    padding: 2, 2, 2, 2
+                    cols: 11
+                    pos_hint: {'top': 1}
+                    size_hint_y: None if (root.width * 1.1) < root.height else 1
+                    size_hint_x: 1 if (root.width * 1.1) < root.height else None
+                    height: self.width 
+                    width: self.height
+                Widget:
+                    canvas:
+                        Color:
+                            rgba: 1, 0, 0, root.outlineAlpha
+                        Line:
+                            rectangle: (self.x + self.width/9 * root.outlineColumn, self.height - self.width/9 * root.outlineRow, self.width/9 * root.outlineWidth, self.width/9 * root.outlineHeight) if (root.width * 1.1) < root.height else (self.x + self.height/9 * root.outlineColumn, self.height - self.height/9 * root.outlineRow, self.height/9 * root.outlineWidth, self.height/9 * root.outlineHeight)
+                            joint: 'round'
+                            width: 2
+            ExampleDokus:
+                orientation: "vertical"
+                size_hint_x: padsize
+                Button:
+                    text: "E"
+                    on_press: root.fill_example(self)
+                Button:
+                    text: "M"
+                    on_press: root.fill_example(self)
+                Button:
+                    text: "H"
+                    on_press: root.fill_example(self)
+                Button:
+                    text: "X"
+                    on_press: root.fill_example(self)
+        EntryLayout:
+            size_hint_y: .25
+            Button:
+                id: helpMe
+                size_hint_x: .25
+                disabled: True
+                text: "More info"
+                on_press: 
+                    root.manager.current = 'helpscreen'
+                    root.manager.transition.direction = 'left'
+
+            OptionGrid:
+                id: entryGrid
+                cols: 5
+                size_hint_x: .5
+                pos_hint: {'right': .75}
+            BoxLayout:
+                id: possDisplay
+                orientation: "vertical"
+                size_hint_x: .5
+                pos_hint: {'right': 0}
+                RelativeLayout:
+                    id: scrollHolder
+                    canvas:
+                        Color: 
+                            rgba: .9, .9, 1, .2
+                        Rectangle:
+                            size: (self.width, self.height / 5)
+                            pos: 0, self.height * 3 / 10
+
+                    HistoryScroll:
+                        pos_hint: {'top': .5}
+                        orientation: 'lr-tb'
+                        id: historyDisplay
+                Slider:
+                    size_hint_y: .3
+                    id: historySlider
+                    min: 0
+                    max: 0
+            BoxLayout:
+                size_hint_x: .25
+                pos_hint: {'right': 1}
+                orientation: "vertical"
+                Button: 
+                    id: startButton
+                    text: "Lock in puzzle"
+                    on_press: root.run_solver(self)
+                Button: 
+                    text: "Solve puzzle"
+                    on_press: root.solveAll(self)
+                Button:
+                    text: "Reset"
+                    on_press: root.reset(self)
+
+<ExampleDokus@BoxLayout>
+
+<HistoryLabel>:
+    size_hint_y: .2
+
+<ToggleButton>:
+    on_press: app.main.switch_active(self)
+
+
+<Possibles>:
+    Label:
+        text: "1"
+        anchor_x: 'left'
+        anchor_y: 'top'
+    Label:
+        text: "2"
+        anchor_x: 'center'
+        anchor_y: 'top'
+    Label:
+        text: "3"
+        anchor_x: 'right'
+        anchor_y: 'top'
+    Label:
+        text: "4"
+        anchor_x: 'left'
+        anchor_y: 'center'
+    Label:
+        text: "5"
+        anchor_x: 'center'
+        anchor_y: 'center'
+    Label:
+        text: "6"
+        anchor_x: 'right'
+        anchor_y: 'center'
+    Label:
+        text: "7"
+        anchor_x: 'left'
+        anchor_y: 'bottom'
+    Label:
+        text: "8"
+        anchor_x: 'center'
+        anchor_y: 'bottom'
+    Label:
+        text: "9"
+        anchor_x: 'right'
+        anchor_y: 'bottom'
+
+<HelpScreen>:
+    on_pre_enter: root.chooseHint(app.main.ids.historySlider.value)
+    BoxLayout:
+        canvas.before:
+            Rectangle:
+                size: self.size
+                source: 'images/help_bg_gradient.jpg'
+        orientation: "vertical"
+        Label:
+            size_hint_y: .05
+        BoxLayout:
+            size_hint_y: .6
+            Label:
+                size_hint_x: .1
+            RelativeLayout:
+                HelperSudoku:
+                    padding: 2, 2, 2, 2
+                    cols: 11
+                    pos_hint: {'top': 1}
+                    size_hint_y: None if (root.width * 1.1) < root.height else 1
+                    size_hint_x: 1 if (root.width * 1.1) < root.height else None
+                    height: self.width 
+                    width: self.height
+            Label:
+                size_hint_x: .1
+        BoxLayout:
+            size_hint_y: .2
+            Button:
+                size_hint_x: .25
+                on_press: 
+                    root.cleanPuzz()
+                    root.manager.current = 'mainscreen'
+                    root.manager.transition.direction = 'right'
+                text: "Return"
+            Label:
+                id: explainer
+                text_size: self.size
+                valign: 'middle'
+                halign: 'center'
+                text: "Sorry I'm not sure how you got here."
+            Label:
+                size_hint_x: .05
